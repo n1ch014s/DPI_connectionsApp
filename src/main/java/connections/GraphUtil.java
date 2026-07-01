@@ -1,3 +1,7 @@
+package connections;
+
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.HashMap;
 
 
@@ -7,9 +11,9 @@ public class GraphUtil {
 
     /**
      * Constructor for GraphUtil.
-     * Creates User Node and intitializes nodeList of all Nodes.
+     * Creates User Node and initializes nodeList of all Nodes.
      *
-     * @param n User's name
+     * @param userName User's name
      * @param pub User's public key
      * @param priv User's private key
      */
