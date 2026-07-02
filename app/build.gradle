@@ -1,0 +1,20 @@
+plugins {
+    id 'com.android.application'
+}
+
+dependencies {
+    implementation project(":core")
+}
+
+android {
+    namespace "com.unibas.socialconnections"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.unibas.socialconnections"
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+    }
+}

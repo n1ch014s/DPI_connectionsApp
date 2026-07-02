@@ -19,7 +19,7 @@ public class GraphUtil {
      */
     GraphUtil(String userName, PublicKey pub, PrivateKey priv){
         userNode = new Node(pub, userName, priv);
-        nodeList = new HashMap<PublicKey, Node>;
+        nodeList = new HashMap<PublicKey, Node>();
         nodeList.put(pub, userNode);
     }
 
@@ -31,7 +31,7 @@ public class GraphUtil {
      * @param node Existing Friend node to add friend to
      * @param pub new friend's Public Key
      */
-    public addFriendToFriend(Node node, PublicKey pub) {
+    public void addFriendToFriend(Node node, PublicKey pub) {
         if(nodeList.containsKey(pub)) {
             node.addFriend(nodeList.get(pub));
         }
@@ -49,7 +49,7 @@ public class GraphUtil {
      * @param node Existing Friend node to add list of friends to
      * @param pubKeys list of Public Keys of new friends
      */
-    public addFriendToFriend(Node node, PublicKey[] pubKeys) {
+    public void addFriendToFriend(Node node, PublicKey[] pubKeys) {
         for(int i = 0; i < pubKeys.length; i++) {
             PublicKey pub = pubKeys[i];
             if(nodeList.containsKey(pub)) {
@@ -70,7 +70,7 @@ public class GraphUtil {
      * @param nodePub Existing Node's Public Key to add friend to
      * @param friendPub new friend's Public Key
      */
-    public addFriendToFriend(PublicKey nodePub, PublicKey friendPub) {
+    public void addFriendToFriend(PublicKey nodePub, PublicKey friendPub) {
         if(nodeList.containsKey(friendPub)) {
             nodeList.get(nodePub).addFriend(nodeList.get(friendPub));
         }
@@ -88,7 +88,7 @@ public class GraphUtil {
      * @param nodePub Existing Node's Public Key to add list of friends to
      * @param pubKeys list of Public Keys of new friends
      */
-    public addFriendToFriend(PublicKey nodePub, PublicKey[] pubKeys) {
+    public void addFriendToFriend(PublicKey nodePub, PublicKey[] pubKeys) {
         node = nodeList.get(nodePub);
         for(int i = 0; i < pubKeys.length; i++) {
             PublicKey pub = pubKeys[i];
@@ -106,11 +106,10 @@ public class GraphUtil {
     /**
      * Method for adding friends to a Node.
      *
-     *
-     * @param node Existing node to add friend to
      * @param pub new friend's Public Key
+     * @param name new friend's username
      */
-    public addFriendToUser(PublicKey pub, String name) {
+    public void addFriendToUser(PublicKey pub, String name) {
         if(nodeList.containsKey(pub)) {
             Node friend = nodeList.get(pub);
             friend.isFriend = true;

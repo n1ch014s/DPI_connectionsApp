@@ -10,16 +10,21 @@ public class NFCManager{
     //Activate on button press
 
     // Phone A turns on reader mode while B is HostApduService
-        // ig these are their own modes the users select, like on whatsapp showing your qr code
+        // ig these are their own modes the users select, like on WhatsApp showing your qr code
     // A requests getPublicKey
     // B Responds 32-byte public key
     // then reverse
+    NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(this);
 
     public interface Callback {
         void onDataReceived(String json);
     }
-
     private Callback callback;
+
+    NFCManager(){
+        setCallback(callback);
+    }
+
 
     public void setCallback(Callback callback){
         this.callback = callback;
