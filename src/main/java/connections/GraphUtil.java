@@ -13,7 +13,7 @@ public class GraphUtil {
      * @param pub User's public key
      * @param priv User's private key
      */
-    GraphUtil(String userName, PublicKey pub, PrivateKey priv){
+    public GraphUtil(String userName, PublicKey pub, PrivateKey priv){
         userNode = new Node(pub, userName, priv);
         nodeList = new HashMap<PublicKey, Node>;
         nodeList.put(pub, userNode);
