@@ -3,6 +3,7 @@ package connections;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 
 public class GraphUtil {
@@ -116,5 +117,142 @@ public class GraphUtil {
             Node friend = new Node(pub, name);
             userNode.addFriend(friend);
         }
+    }
+
+    /**
+     * Returns the distance to a Node with a given PublicKey
+     * @param pub Node's PublicKey
+     * @return Distance or -1 if PublicKey not found
+     */
+    public int getDistance(PublicKey pub){
+        if(nodeList.containsKey(pub)) {
+            Node node = nodeList.get(pub);
+            if(node.isFriend) {
+                return 1;
+            }
+            else {
+                return 2;
+            }
+        }
+        else {
+            return -1;
+        }
+    }
+
+    /**
+     * Getter Method for list, which can be sent to other users
+     * for finding common connection/path
+     *
+     * @return array of KeyDistTuples of all other nodes.
+     */
+    public KeyDistTuple[] getList() {
+        KeyDistTuple[] list = new KeyDistTuple[nodeList.size()];
+        int i = 0;
+        for(PublicKey pub : nodeList.keySet()) {
+            list[i] = new KeyDistTuple(pub, getDistance(pub));
+        }
+        return list;
+    }
+
+    /**
+     * Returns all paths with minimum possible distance.
+     * @param list list from other user with all keys and distances to other nodes
+     * @return LinkedList of all possible paths with same total length.
+     * Longer paths or paths to unknown PublicKeys are omitted.
+     */
+    public LinkedList<PublicKey[]> getMinPaths(KeyDistTuple[] list){
+        LinkedList<PublicKey[]> paths = new LinkedList<>();
+        int currMin = 100;
+        //loop through received KeyDistTuple List
+        for(int i = 0; i < list.length; i++) {
+            KeyDistTuple t = list[i];
+            int dist = getDistance(t.key);
+            //if node with key exists
+            if(dist > 0) {
+                int totalDist = dist + t.distance;
+                //new class of shorter paths found
+                if(totalDist < currMin) {
+                    currMin = totalDist;
+                    paths = new LinkedList<>();
+                    PublicKey[] path = new PublicKey[totalDist];
+                    //node from list is a friend
+                    if(dist == 1) {
+                        path[0] = t.key;
+                        paths.add(path);
+                    }
+                    //node from list is friend of friend
+                    else {
+                        //in case friend of friend is friend of several friends
+                        for(PublicKey k : nodeList.get(t.key).friends.keySet()) {
+                            if(nodeList.get(k).isFriend) {
+                                path = new PublicKey[totalDist];
+                                path[1] = k;
+                                path[0] = t.key;
+                                paths.add(path);
+                            }
+                        }
+                    }
+                }
+                //all paths with minimum length are added
+                else if(totalDist == currMin) {
+                    PublicKey[] path = new PublicKey[currMin];
+                    //node from list is a friend
+                    if(dist == 1) {
+                        path[0] = t.key;
+                        paths.add(path);
+                    }
+                    //node from list is friend of friend
+                    else {
+                        //in case friend of friend is friend of several friends
+                        for(PublicKey k : nodeList.get(t.key).friends.keySet()) {
+                            if (nodeList.get(k).isFriend) {
+                                path = new PublicKey[totalDist];
+                                path[0] = k;
+                                path[1] = t.key;
+                                paths.add(path);
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+        return paths;
+    }
+
+    /**
+     * Fills the LinkedList of paths received from other user with all possible paths
+     * @param paths received LinkedList of all paths of minimum length as connection
+     * @param otherUser the PublicKey of the other user (added at the end for complete path)
+     * @return  all possible paths of min length from this user to other user
+     */
+    public LinkedList<PublicKey[]> fillMinPaths(LinkedList<PublicKey[]> paths, PublicKey otherUser) {
+        LinkedList<PublicKey[]> completedPaths = new LinkedList<>();
+        for(int i = 0; i < paths.size(); i++) {
+            PublicKey[] curr = paths.get(i);
+            Node interfaceNode = nodeList.get(curr[0]);
+            if(interfaceNode.isFriend) {
+                PublicKey[] path = new PublicKey[1+curr.length];
+                for(int j = 0; j < curr.length; j++) {
+                    path[j] = curr[j];
+                }
+                path[path.length-1] = otherUser;
+                completedPaths.add(path);
+            }
+            else {
+                for(PublicKey p : interfaceNode.friends.keySet()) {
+                    if(nodeList.get(p).isFriend) {
+                        PublicKey[] path = new PublicKey[2+curr.length];
+                        path[0] = p;
+                        for(int j = 0; j < curr.length; j++) {
+                            path[j+1] = curr[j];
+                        }
+                        path[path.length-1] = otherUser;
+                        completedPaths.add(path);
+                    }
+                }
+            }
+        }
+        return completedPaths;
     }
 }
