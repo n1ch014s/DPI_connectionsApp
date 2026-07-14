@@ -1,0 +1,17 @@
+<host-apdu-service
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/Social_Connections"
+    android:requireDeviceUnlock="false">
+
+    <aid-group
+        android:category="other"
+        android:description="@string/Social_Connections">
+
+        <aid-filter
+            android:name="F0010203040506"
+            android:description="@string/Social_Connections"
+            android:category="other"/>
+
+    </aid-group>
+
+</host-apdu-service>

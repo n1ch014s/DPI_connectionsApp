@@ -1,4 +1,7 @@
-package transmission;
+package com.unibas.socialconnections.transmission;
+
+import android.app.Activity;
+import android.nfc.NfcAdapter;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
@@ -16,14 +19,17 @@ import connections.Node;
 public class Sync{
     private final GraphUtil graph;
     private final NFCManager nfcManager;
+    private final Activity activity;
+    private static Sync instance;
 
     /**
      * Creates a Sync Manager which controls and processing of incoming and outgoing nodes
      * @param graph the graph which contains the friend data
      */
-    public Sync(GraphUtil graph){
+    public Sync(GraphUtil graph, NfcAdapter nfcAdapter, Activity activity){
         this.graph = graph;
-        this.nfcManager = new NFCManager(this);
+        this.activity = activity;
+        this.nfcManager = new NFCManager(this, nfcAdapter);
     }
 
     /**
@@ -49,10 +55,11 @@ public class Sync{
 
     /**
      * Process the outgoing messages by turning the usernode and the friendslist into a string which can be transmitted
-     * @param userNode Users own node with its username and public key
-     * @param nodeList nodelist of friends which are all to be transmitted as well
+     * @return returns the message string generated from the usernode
      */
-    public void processOutgoing(Node userNode, HashMap<PublicKey, Node> nodeList){
+    public String processOutgoing(){
+        Node userNode = graph.getUserNode();
+        HashMap<PublicKey, Node> nodeList = graph.getNodeList();
         StringBuilder builder = new StringBuilder();
         String pubkeyString = Base64.getEncoder().encodeToString(userNode.publicKey.getEncoded());
         builder.append("||");
@@ -65,8 +72,7 @@ public class Sync{
         }
 
 
-        nfcManager.send(builder.toString());
-
+        return builder.toString();
     }
 
     /**
@@ -86,7 +92,21 @@ public class Sync{
         return keyFactory.generatePublic(keySpec);
     }
 
+
+    /*----------------- Getters ---------------------------*/
     public NFCManager getNfcManager() {
         return nfcManager;
+    }
+
+    public Activity getActivity() {
+        return activity;
+    }
+
+    public static Sync getInstance() {
+        return instance;
+    }
+
+    public boolean getHostingStatus(){
+        return nfcManager.getHostingStatus();
     }
 }

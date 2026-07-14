@@ -251,4 +251,12 @@ public class GraphUtil {
         }
         return completedPaths;
     }
+
+    public Node getUserNode() {
+        return userNode;
+    }
+
+    public HashMap<PublicKey, Node> getNodeList() {
+        return nodeList;
+    }
 }

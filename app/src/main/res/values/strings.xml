@@ -2,4 +2,5 @@
 <resources>
     <string name="host_connection">Host Connection</string>
     <string name="connect_to_host">Connect to Host</string>
+    <string name="Social_Connections">Social Connections</string>
 </resources>

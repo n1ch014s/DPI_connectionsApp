@@ -9,20 +9,26 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.unibas.socialconnections.R;
-
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
 import connections.GraphUtil;
-import transmission.NFCManager;
-import transmission.Sync;
+import connections.Node;
+
+import com.unibas.socialconnections.transmission.NFCManager;
+import com.unibas.socialconnections.transmission.Sync;
 
 
 public class MainActivity extends AppCompatActivity {
     private NfcAdapter nfcAdapter;
     private NFCManager nfcManager;
+    private Node userNode;
 
+
+    /**
+     * The OnCreate function is what is first run when the app is started and therefore generates all necessary things like the NFC Adapter and Manager
+     * @param savedInstanceState the saved instance which is automatically passed upon creation
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
             finish();
         }
 
+        //These are temporary until we can import them fully from the system
         PublicKey key = new PublicKey() {
             @Override
             public String getAlgorithm() {
@@ -68,14 +75,17 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-
         GraphUtil graph = new GraphUtil("default", key, pkey);
-        Sync sync = new Sync(graph);
+        Sync sync = new Sync(graph, nfcAdapter, this);
         this.nfcManager = sync.getNfcManager();
 
         setupButtons();
     }
 
+    /**
+     * OnResume is what is run every time the (previously created) App is started up again after an interruption.
+     *
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -85,6 +95,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * sets up the buttons for the NFC connections
+     */
     private void setupButtons(){
         Button hostButton = findViewById(R.id.hostButton);
         Button clientButton = findViewById(R.id.connectButton);
