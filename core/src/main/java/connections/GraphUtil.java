@@ -233,9 +233,7 @@ public class GraphUtil {
             Node interfaceNode = nodeList.get(curr[0]);
             if(interfaceNode.isFriend) {
                 PublicKey[] path = new PublicKey[1+curr.length];
-                for(int j = 0; j < curr.length; j++) {
-                    path[j] = curr[j];
-                }
+                System.arraycopy(curr, 0, path, 0, curr.length);
                 path[path.length-1] = otherUser;
                 completedPaths.add(path);
             }
@@ -244,9 +242,7 @@ public class GraphUtil {
                     if(nodeList.get(p).isFriend) {
                         PublicKey[] path = new PublicKey[2+curr.length];
                         path[0] = p;
-                        for(int j = 0; j < curr.length; j++) {
-                            path[j+1] = curr[j];
-                        }
+                        System.arraycopy(curr, 0, path, 1, curr.length);
                         path[path.length-1] = otherUser;
                         completedPaths.add(path);
                     }
