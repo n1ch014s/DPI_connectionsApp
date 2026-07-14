@@ -19,7 +19,7 @@ public class GraphUtil {
      */
     public GraphUtil(String userName, PublicKey pub, PrivateKey priv){
         userNode = new Node(pub, userName, priv);
-        nodeList = new HashMap<PublicKey, Node>();
+        nodeList = new HashMap<>();
         nodeList.put(pub, userNode);
     }
 
@@ -50,12 +50,10 @@ public class GraphUtil {
      * @param pubKeys list of Public Keys of new friends
      */
     public void addFriendToFriend(Node node, PublicKey[] pubKeys) {
-        for(int i = 0; i < pubKeys.length; i++) {
-            PublicKey pub = pubKeys[i];
-            if(nodeList.containsKey(pub)) {
+        for (PublicKey pub : pubKeys) {
+            if (nodeList.containsKey(pub)) {
                 node.addFriend(nodeList.get(pub));
-            }
-            else {
+            } else {
                 Node friend = new Node(pub);
                 nodeList.put(pub, friend);
                 node.addFriend(friend);
@@ -90,12 +88,10 @@ public class GraphUtil {
      */
     public void addFriendToFriend(PublicKey nodePub, PublicKey[] pubKeys) {
         Node node = nodeList.get(nodePub);
-        for(int i = 0; i < pubKeys.length; i++) {
-            PublicKey pub = pubKeys[i];
-            if(nodeList.containsKey(pub)) {
+        for (PublicKey pub : pubKeys) {
+            if (nodeList.containsKey(pub)) {
                 node.addFriend(nodeList.get(pub));
-            }
-            else {
+            } else {
                 Node friend = new Node(pub);
                 nodeList.put(pub, friend);
                 node.addFriend(friend);
