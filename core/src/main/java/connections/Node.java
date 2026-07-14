@@ -1,6 +1,7 @@
 package connections;
 
 import java.security.PublicKey;
+import java.security.PrivateKey;
 import java.util.HashMap;
 
 
@@ -30,7 +31,7 @@ public class Node {
         publicKey = pub;
         privateKey = priv;
         name = n;
-        friends = new HashMap<PublicKey, Node>;
+        friends = new HashMap<>();
     }
 
     /**
@@ -43,8 +44,9 @@ public class Node {
         isUser = false;
         isFriend = true;
         publicKey = pub;
+        privateKey = null;
         name = n;
-        friends = new HashMap<PublicKey, Node>;
+        friends = new HashMap<>();
     }
 
     /**
@@ -56,16 +58,17 @@ public class Node {
         isUser = false;
         isFriend = false;
         publicKey = pub;
-        friends = new HashMap<PublicKey, Node>;
+        privateKey = null;
+        friends = new HashMap<>();
     }
 
     /**
      * Method for adding new Friend node to this node's friend map.
      * Also adds this node as new Friend to other node.
      *
-     * @param node new Friend node
+     * @param friendNode new Friend node
      */
-    default addFriend(Node friendNode) {
+    void addFriend(Node friendNode) {
         friends.put(friendNode.publicKey, friendNode);
         friendNode.friends.put(publicKey, this);
     }
@@ -74,14 +77,14 @@ public class Node {
      * Method for removing Friend node from this node's friend map.
      * Also removes this node as Friend from other node.
      *
-     * @param node Friend node to be removed
+     * @param friendNode Friend node to be removed
      */
-    default removeFriend(Node friendNode) {
+    void removeFriend(Node friendNode) {
         friends.remove(friendNode.publicKey);
         friendNode.friends.remove(publicKey);
         if(friendNode.isFriend && isUser) {
             friendNode.isFriend = false;
-            friendNode.name = NULL;
+            friendNode.name = null;
         }
     }
 

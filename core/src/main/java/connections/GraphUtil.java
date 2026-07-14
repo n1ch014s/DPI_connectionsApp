@@ -89,7 +89,7 @@ public class GraphUtil {
      * @param pubKeys list of Public Keys of new friends
      */
     public void addFriendToFriend(PublicKey nodePub, PublicKey[] pubKeys) {
-        node = nodeList.get(nodePub);
+        Node node = nodeList.get(nodePub);
         for(int i = 0; i < pubKeys.length; i++) {
             PublicKey pub = pubKeys[i];
             if(nodeList.containsKey(pub)) {
