@@ -23,7 +23,7 @@ public class Sync{
      */
     public Sync(GraphUtil graph){
         this.graph = graph;
-        this.nfcManager = new NFCManager();
+        this.nfcManager = new NFCManager(this);
     }
 
     /**
@@ -33,7 +33,7 @@ public class Sync{
     public void processIncoming(String info){
         // info built like: public key || name || friend | friend | friend
         String[] data;
-        data = info.split("||");
+        data = info.split("\\|\\|");
         PublicKey pub = null;
         try {
             pub = decodeString(data[0]);
@@ -53,16 +53,19 @@ public class Sync{
      * @param nodeList nodelist of friends which are all to be transmitted as well
      */
     public void processOutgoing(Node userNode, HashMap<PublicKey, Node> nodeList){
-        StringBuilder builder = new StringBuilder(userNode.publicKey.toString());
+        StringBuilder builder = new StringBuilder();
+        String pubkeyString = Base64.getEncoder().encodeToString(userNode.publicKey.getEncoded());
         builder.append("||");
         builder.append(userNode.name);
         builder.append("||");
         for (PublicKey pk : nodeList.keySet()){
-            builder.append(pk);
+            String pkString = Base64.getEncoder().encodeToString(pk.getEncoded());
+            builder.append(pkString);
             builder.append("|");
         }
 
-        nfcManager.handleOutgoingData(builder.toString());
+
+        nfcManager.send(builder.toString());
 
     }
 
@@ -83,4 +86,7 @@ public class Sync{
         return keyFactory.generatePublic(keySpec);
     }
 
+    public NFCManager getNfcManager() {
+        return nfcManager;
+    }
 }

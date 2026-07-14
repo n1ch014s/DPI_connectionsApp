@@ -1,12 +1,11 @@
 package transmission;
 
-import android.nfc.NfcAdapter;
-
 /**
  Establishing a connection with NFC. Manages the sending and receiving of data.
 
  */
 public class NFCManager{
+    private final Sync sync;
     //Activate on button press
 
     // Phone A turns on reader mode while B is HostApduService
@@ -14,30 +13,28 @@ public class NFCManager{
     // A requests getPublicKey
     // B Responds 32-byte public key
     // then reverse
-    NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(this);
 
-    public interface Callback {
-        void onDataReceived(String json);
-    }
-    private Callback callback;
-
-    NFCManager(){
-        setCallback(callback);
+    NFCManager(Sync sync){
+        this.sync = sync;
     }
 
+    public void startHost(){
 
-    public void setCallback(Callback callback){
-        this.callback = callback;
     }
 
-    public void handleIncomingData(String json){
-        if(callback != null){
-            callback.onDataReceived(json);
-        }
+    public void startClient(){
+
     }
 
-    public void handleOutgoingData(String msg){
-        //TODO
+
+    public void receive(String json){
+        this.sync.processIncoming(json);
+
     }
+
+    public void send(String msg){
+        //SEND
+    }
+
 
 }
