@@ -1,3 +1,6 @@
+package connections;
+
+import java.security.PublicKey;
 import java.util.HashMap;
 
 
@@ -80,5 +83,9 @@ public class Node {
             friendNode.isFriend = false;
             friendNode.name = NULL;
         }
+    }
+
+    public PublicKey getPublicKey(){
+        return this.publicKey;
     }
 }

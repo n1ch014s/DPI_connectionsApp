@@ -1,0 +1,39 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+
+# Built application files
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file (contains SDK paths, per-machine)
+local.properties
+
+# Log files
+*.log
+
+# IntelliJ / Android Studio project files
+*.iml
+.idea/
+
+# Keystore files (never commit signing keys)
+*.jks
+*.keystore
+
+# OS-generated files
+.DS_Store
+Thumbs.db
