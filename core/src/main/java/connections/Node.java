@@ -40,7 +40,7 @@ public class Node {
      * @param pub Friend's public key
      * @param n Friend's name
      */
-    Node(PublicKey pub, String n) {
+    public Node(PublicKey pub, String n) {
         isUser = false;
         isFriend = true;
         publicKey = pub;
@@ -68,7 +68,7 @@ public class Node {
      *
      * @param friendNode new Friend node
      */
-    void addFriend(Node friendNode) {
+    public void addFriend(Node friendNode) {
         friends.put(friendNode.publicKey, friendNode);
         friendNode.friends.put(publicKey, this);
     }

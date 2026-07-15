@@ -6,16 +6,22 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import connections.GraphUtil;
 import connections.Node;
 
+import com.unibas.socialconnections.storage.GraphStorage;
 import com.unibas.socialconnections.transmission.NFCManager;
 import com.unibas.socialconnections.transmission.Sync;
 
@@ -24,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private NfcAdapter nfcAdapter;
     private NFCManager nfcManager;
     private Node userNode;
-
+    private GraphUtil graph;
 
     /**
      * The OnCreate function is what is first run when the app is started and therefore generates all necessary things like the NFC Adapter and Manager
@@ -33,57 +39,56 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (!SetupPrefs.isSetupComplete(this)) {
+            startActivity(new Intent(this, SetupActivity.class));
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_main);
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
 
         if (nfcAdapter == null) {
             Toast.makeText(this, "NFC not supported on this device", Toast.LENGTH_SHORT).show();
             finish();
+            Log.d("HCEfromMain", "HCE enabled");
             return;
         }
 
-        Log.d("HCEfromMain", "HCE enabled");
+        loadGraphAndInitialize();
+    }
 
-        //These are temporary until we can import them fully from the system
-        PublicKey key = new PublicKey() {
-            @Override
-            public String getAlgorithm() {
-                return "";
-            }
+    private void loadGraphAndInitialize() {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler mainHandler = new Handler(Looper.getMainLooper());
 
-            @Override
-            public String getFormat() {
-                return "";
-            }
+        GraphStorage graphStorage = new GraphStorage(getApplicationContext());
 
-            @Override
-            public byte[] getEncoded() {
-                return new byte[0];
-            }
-        };
+        graphStorage.getStoredUsername(username -> {
+            executor.execute(() -> {
+                try {
+                    KeyPair keyPair = KeyManager.getExistingKeyPair();
+                    String finalUsername = (username != null) ? username : "Unknown";
 
-        PrivateKey pkey = new PrivateKey() {
-            @Override
-            public String getAlgorithm() {
-                return "";
-            }
+                    GraphUtil graph = new GraphUtil(finalUsername, keyPair.getPublic(), (PrivateKey) keyPair.getPrivate());
+                    graphStorage.setGraphUtil(graph);
 
-            @Override
-            public String getFormat() {
-                return "";
-            }
-
-            @Override
-            public byte[] getEncoded() {
-                return new byte[0];
-            }
-        };
-
-        GraphUtil graph = new GraphUtil("default", key, pkey);
-        Sync sync = new Sync(graph, nfcAdapter, this);
-        this.nfcManager = sync.getNfcManager();
-
-        setupButtons();
+                    graphStorage.loadGraphFromDatabase(() -> {
+                        mainHandler.post(() -> {
+                            this.graph = graph;
+                            Sync sync = new Sync(graph, nfcAdapter, this);
+                            this.nfcManager = sync.getNfcManager();
+                            setupButtons();
+                        });
+                    });
+                } catch (Exception e) {
+                    mainHandler.post(() ->
+                            Toast.makeText(this, "Failed to load your data: " + e.getMessage(),
+                                    Toast.LENGTH_LONG).show());
+                }
+            });
+        });
     }
 
     /**

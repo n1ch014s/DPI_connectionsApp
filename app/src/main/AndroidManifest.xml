@@ -43,7 +43,7 @@
             </intent-filter>
         </activity>
 
-
+        <activity android:name=".SetupActivity" />
 
     </application>
 
