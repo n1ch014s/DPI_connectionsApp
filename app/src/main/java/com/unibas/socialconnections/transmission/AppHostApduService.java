@@ -1,20 +1,48 @@
 package com.unibas.socialconnections.transmission;
 
 
+import static android.content.ContentValues.TAG;
+
 import android.nfc.cardemulation.HostApduService;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
 public class AppHostApduService extends HostApduService {
 
+    private static final String TAG = "HCE_SERVICE";
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Log.d(TAG, "HCE service created");
+    }
+
     @Override
     public byte[] processCommandApdu(byte[] command, Bundle bundle) {
+        Log.d("APDU", "Service started");
+
+        if(isSelectAid(command)) {
+            Log.d("HCE", "Client selected app");
+
+            return new byte[]{
+                    (byte) 0x90,
+                    (byte) 0x00
+            };
+        }
 
         Sync sync = Sync.getInstance();
 
+        Log.d("SYNC", "found instance");
+
         if(sync != null && sync.getHostingStatus()) {
+            Log.d("HCE", "processcommand was called APDU service");
+
             // Client sends data
+
             String data = new String(command);
             sync.processIncoming(data);
+            sync.setHostingStatus(false);
 
             // Send response
             String response = sync.processOutgoing();
@@ -28,5 +56,34 @@ public class AppHostApduService extends HostApduService {
     @Override
     public void onDeactivated(int i) {
 
+    }
+
+    private boolean isSelectAid(byte[] command){
+        byte[] selectAid = new byte[] {
+                (byte) 0x00,
+                (byte) 0xA4,
+                (byte) 0x04,
+                (byte) 0x00,
+                (byte) 0x07,
+                (byte) 0xF0,
+                (byte) 0x01,
+                (byte) 0x02,
+                (byte) 0x03,
+                (byte) 0x04,
+                (byte) 0x05,
+                (byte) 0x06
+        };
+
+        if (command.length < selectAid.length) {
+            return false;
+        }
+
+        for (int i = 0; i < selectAid.length; i++) {
+            if (command[i] != selectAid[i]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

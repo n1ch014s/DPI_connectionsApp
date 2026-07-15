@@ -62,6 +62,7 @@ public class Sync{
         PublicKey[] nodeList = graph.getFriendsList();
         StringBuilder builder = new StringBuilder();
         String pubkeyString = Base64.getEncoder().encodeToString(userNode.publicKey.getEncoded());
+        builder.append(pubkeyString);
         builder.append("||");
         builder.append(userNode.name);
         builder.append("||");
@@ -108,5 +109,9 @@ public class Sync{
 
     public boolean getHostingStatus(){
         return nfcManager.getHostingStatus();
+    }
+
+    public void setHostingStatus(boolean b) {
+        nfcManager.setHostingStatus(b);
     }
 }

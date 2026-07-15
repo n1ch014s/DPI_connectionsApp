@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -38,7 +39,10 @@ public class MainActivity extends AppCompatActivity {
         if (nfcAdapter == null) {
             Toast.makeText(this, "NFC not supported on this device", Toast.LENGTH_SHORT).show();
             finish();
+            return;
         }
+
+        Log.d("HCEfromMain", "HCE enabled");
 
         //These are temporary until we can import them fully from the system
         PublicKey key = new PublicKey() {
@@ -91,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         Intent intent = new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
-        nfcAdapter.enableForegroundDispatch(this, pendingIntent, null, null);
+        //nfcAdapter.enableForegroundDispatch(this, pendingIntent, null, null);
     }
 
 

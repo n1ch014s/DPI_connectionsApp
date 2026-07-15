@@ -8,9 +8,7 @@
         android:description="@string/Social_Connections">
 
         <aid-filter
-            android:name="F0010203040506"
-            android:description="@string/Social_Connections"
-            android:category="other"/>
+            android:name="F0010203040506"/>
 
     </aid-group>
 
