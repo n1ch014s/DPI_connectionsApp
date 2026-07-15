@@ -150,6 +150,7 @@ public class GraphUtil {
         int i = 0;
         for(PublicKey pub : nodeList.keySet()) {
             list[i] = new KeyDistTuple(pub, getDistance(pub));
+            i++;
         }
         return list;
     }
@@ -256,7 +257,13 @@ public class GraphUtil {
         return userNode;
     }
 
-    public HashMap<PublicKey, Node> getNodeList() {
-        return nodeList;
+    public PublicKey[] getFriendsList() {
+        PublicKey[] list = new PublicKey[userNode.friends.size()];
+        int i = 0;
+        for(PublicKey pub : userNode.friends.keySet()) {
+            list[i] = pub;
+            i++;
+        }
+        return list;
     }
 }

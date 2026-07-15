@@ -59,13 +59,13 @@ public class Sync{
      */
     public String processOutgoing(){
         Node userNode = graph.getUserNode();
-        HashMap<PublicKey, Node> nodeList = graph.getNodeList();
+        PublicKey[] nodeList = graph.getFriendsList();
         StringBuilder builder = new StringBuilder();
         String pubkeyString = Base64.getEncoder().encodeToString(userNode.publicKey.getEncoded());
         builder.append("||");
         builder.append(userNode.name);
         builder.append("||");
-        for (PublicKey pk : nodeList.keySet()){
+        for (PublicKey pk : nodeList) {
             String pkString = Base64.getEncoder().encodeToString(pk.getEncoded());
             builder.append(pkString);
             builder.append("|");
