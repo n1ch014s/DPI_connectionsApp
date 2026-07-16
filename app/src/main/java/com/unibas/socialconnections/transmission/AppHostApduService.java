@@ -1,12 +1,8 @@
 package com.unibas.socialconnections.transmission;
 
-
-import static android.content.ContentValues.TAG;
-
 import android.nfc.cardemulation.HostApduService;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
 
 public class AppHostApduService extends HostApduService {
 
@@ -54,8 +50,8 @@ public class AppHostApduService extends HostApduService {
     }
 
     @Override
-    public void onDeactivated(int i) {
-
+    public void onDeactivated(int reason) {
+        Log.d(TAG, "HCE deactivated: " + reason);
     }
 
     private boolean isSelectAid(byte[] command){

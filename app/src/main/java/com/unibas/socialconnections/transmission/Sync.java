@@ -1,5 +1,6 @@
 package com.unibas.socialconnections.transmission;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.nfc.NfcAdapter;
 
@@ -20,15 +21,17 @@ public class Sync{
     private final GraphUtil graph;
     private final NFCManager nfcManager;
     private final Activity activity;
+    private final Node userNode;
     private static Sync instance;
 
     /**
      * Creates a Sync Manager which controls and processing of incoming and outgoing nodes
      * @param graph the graph which contains the friend data
      */
-    public Sync(GraphUtil graph, NfcAdapter nfcAdapter, Activity activity){
+    public Sync(GraphUtil graph, NfcAdapter nfcAdapter, Activity activity, Node userNode){
         this.graph = graph;
         this.activity = activity;
+        this.userNode = userNode;
         this.nfcManager = new NFCManager(this, nfcAdapter);
     }
 
@@ -58,13 +61,12 @@ public class Sync{
      * @return returns the message string generated from the usernode
      */
     public String processOutgoing(){
-        Node userNode = graph.getUserNode();
         PublicKey[] nodeList = graph.getFriendsList();
         StringBuilder builder = new StringBuilder();
-        String pubkeyString = Base64.getEncoder().encodeToString(userNode.publicKey.getEncoded());
+        String pubkeyString = Base64.getEncoder().encodeToString(userNode.getPublicKey().getEncoded());
         builder.append(pubkeyString);
         builder.append("||");
-        builder.append(userNode.name);
+        builder.append(userNode.getName());
         builder.append("||");
         for (PublicKey pk : nodeList) {
             String pkString = Base64.getEncoder().encodeToString(pk.getEncoded());

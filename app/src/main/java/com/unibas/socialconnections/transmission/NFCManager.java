@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  Establishing a connection with NFC. Manages the sending and receiving of data.
@@ -25,26 +26,40 @@ public class NFCManager{
     // B Responds 32-byte public key
     // then reverse
 
+    /**
+     * NFC Manager Constructor.
+     * @param sync The Sync Instance which parses data to and from
+     * @param nfcAdapter The NFC adapter which is commands the hardware level
+     */
     NFCManager(Sync sync, NfcAdapter nfcAdapter){
         this.sync = sync;
         this.nfcAdapter = nfcAdapter;
     }
 
+    /**
+     * Opens up hosting, only while Hosting == true does the device accept connections.
+     * this runs on a timeout of 1 minute or until the host finds a reader.
+     */
     public void startHost(){
-        hosting = true;
-        Toast.makeText(sync.getActivity(), "hosting = true", Toast.LENGTH_SHORT).show();
+        setHostingStatus(true);
+        Toast.makeText(sync.getActivity(), "Hosting is opened", Toast.LENGTH_SHORT).show();
         Log.d("HOST", "Host opened");
 
         new Handler().postDelayed(() -> {
-            hosting = false;
-            Toast.makeText(sync.getActivity(), "hosting = false", Toast.LENGTH_SHORT).show();
+            setHostingStatus(false);
+            Toast.makeText(sync.getActivity(), "Timeout: Hosting closed", Toast.LENGTH_SHORT).show();
             Log.d("HOST", "Host closed");
         }, 60000);
     }
 
+    /**
+     * Starts the Client and therefore the Reader Mode to detect any nearby NFC tags.
+     * Upon finding one it runs the callback which sends first the AID message and then the data, i.e. its pubkey and friends list.
+     * TODO: should establish an iroh connection for MinDistance message and future updates
+     */
     public void startClient(){
 
-        Toast.makeText(sync.getActivity(), "starting client", Toast.LENGTH_SHORT).show();
+        Toast.makeText(sync.getActivity(), "Starting Client...", Toast.LENGTH_SHORT).show();
         byte[] selectAid = new byte[] {
                 (byte) 0x00,
                 (byte) 0xA4,
@@ -62,60 +77,75 @@ public class NFCManager{
         };
 
         Log.d("NFC", "starting reader mode!");
+        Log.d("NFC", "Adapter = " + nfcAdapter);
+        Log.d("NFC", "Enabled = " + nfcAdapter.isEnabled());
 
         nfcAdapter.enableReaderMode(
                     sync.getActivity(),
-                tag -> {
+                tag -> { // Start of the callback, this is processed if and when a Tag is found
 
-                    Log.d("NFC", "Tag discovered!");
-                    Toast.makeText(sync.getActivity(), "Tag found", Toast.LENGTH_SHORT).show();
+                    sync.getActivity().runOnUiThread(() ->
+                            Toast.makeText(sync.getActivity(), "Tag found", Toast.LENGTH_SHORT).show()
+                    );
+
                     IsoDep isoDep = IsoDep.get(tag);
 
                     if(isoDep == null){
                         Log.d("IsoDep", "no IsoDep!");
-                        Toast.makeText(sync.getActivity(), "IsoDep not supported", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     try{
-                        Log.d("IsoDep", "IsoDep exists!");
-                        Toast.makeText(sync.getActivity(), "IsoDep trying to connect...", Toast.LENGTH_SHORT).show();
+                        Log.d("NFC", "Tag discovered!: " + isoDep.getTag());
                         isoDep.connect();
 
                         byte[] connection = isoDep.transceive(selectAid);
-                        Toast.makeText(sync.getActivity(), "connected", Toast.LENGTH_SHORT).show();
+
+                        if (connection[connection.length - 2] == (byte)0x90 &&
+                                connection[connection.length - 1] == (byte)0x00) {
+                            Log.d("NFC", "Connection Accepted");
+
+                            String message = this.sync.processOutgoing();
+
+                            // "tranceive" both sends data and then waits for a response
+                            // therefore response is automatically the bytes that are responded from the host
+                            byte[] response = isoDep.transceive(message.getBytes());
 
 
-                        String message = this.sync.processOutgoing();
-                        Toast.makeText(sync.getActivity(), "processed outgoing", Toast.LENGTH_SHORT).show();
-
-                        // tranceive both sends data and then waits for a response
-                        // therefore response is automatically the bytes that are responded from the host
-                        byte[] response = isoDep.transceive(message.getBytes());
-                        Toast.makeText(sync.getActivity(), "Tranceived", Toast.LENGTH_SHORT).show();
-
-
-                        String reply = new String(response);
-                        this.sync.processIncoming(reply);
-                        Toast.makeText(sync.getActivity(), "incoming processed", Toast.LENGTH_SHORT).show();
-
+                            String reply = new String(response);
+                            this.sync.processIncoming(reply);
+                        }
 
                         isoDep.close();
+                        nfcAdapter.disableReaderMode(sync.getActivity());
 
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 },
-                NfcAdapter.FLAG_READER_NFC_A | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null
+                NfcAdapter.FLAG_READER_NFC_A |
+                        NfcAdapter.FLAG_READER_NFC_B |
+                        NfcAdapter.FLAG_READER_NFC_F |
+                        NfcAdapter.FLAG_READER_NFC_V |
+                        NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
+                null
         );
         Log.d("NFC", "Reader mode enabled!");
 
     }
 
+    /**
+     * Returns the current hosting status of the Device
+     * @return hosting status of device as a BOOLEAN
+     */
     public boolean getHostingStatus(){
         return hosting;
     }
 
 
+    /**
+     * Allows the setting of the Hosting status of the device so that it can be shut off remotely.
+     * @param b
+     */
     public void setHostingStatus(boolean b) {
         hosting = b;
     }

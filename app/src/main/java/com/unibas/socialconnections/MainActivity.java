@@ -14,7 +14,6 @@ import android.widget.Toast;
 
 import java.security.KeyPair;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -77,7 +76,8 @@ public class MainActivity extends AppCompatActivity {
                     graphStorage.loadGraphFromDatabase(() -> {
                         mainHandler.post(() -> {
                             this.graph = graph;
-                            Sync sync = new Sync(graph, nfcAdapter, this);
+                            this.userNode = graph.getUserNode();
+                            Sync sync = new Sync(graph, nfcAdapter, this, userNode);
                             this.nfcManager = sync.getNfcManager();
                             setupButtons();
                         });
@@ -115,13 +115,13 @@ public class MainActivity extends AppCompatActivity {
         hostButton.setOnClickListener(v -> {
             nfcManager.startHost();
 
-            Toast.makeText(this, "Waiting for connection", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Waiting for connection...", Toast.LENGTH_SHORT).show();
         });
 
         clientButton.setOnClickListener(v -> {
             nfcManager.startClient();
 
-            Toast.makeText(this, "Connecting to Host", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Connecting to Host...", Toast.LENGTH_SHORT).show();
         });
     }
 

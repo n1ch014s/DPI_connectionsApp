@@ -91,4 +91,8 @@ public class Node {
     public PublicKey getPublicKey(){
         return this.publicKey;
     }
+
+    public String getName() {
+        return name;
+    }
 }
