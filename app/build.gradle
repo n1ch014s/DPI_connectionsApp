@@ -5,14 +5,23 @@ plugins {
 dependencies {
     implementation project(":core")
     implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.core:core-ktx:1.19.0'
     implementation "androidx.room:room-runtime:2.8.4"
     annotationProcessor "androidx.room:room-compiler:2.8.4"
     implementation 'com.google.android.material:material:1.14.0'
+    implementation("computer.iroh:iroh:1.0.0") {
+        exclude group: "net.java.dev.jna", module: "jna"
+    }
+
+    //necessary for computer.iroh
+    implementation("net.java.dev.jna:jna:5.15.0@aar")
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.2.20'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.9.0'
 }
 
 android {
     namespace "com.unibas.socialconnections"
-    compileSdk 35
+    compileSdk 37
 
     defaultConfig {
         applicationId "com.unibas.socialconnections"
@@ -20,5 +29,25 @@ android {
         targetSdk 35
         versionCode 1
         versionName "1.0"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    packaging {
+        resources {
+            excludes += [
+                    "META-INF/AL2.0",
+                    "META-INF/LGPL2.1"
+            ]
+        }
+    }
+
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(
+                    org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+            )
+        }
     }
 }

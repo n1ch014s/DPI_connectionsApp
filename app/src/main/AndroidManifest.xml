@@ -3,6 +3,7 @@
 
     <!-- NFC permission -->
     <uses-permission android:name="android.permission.NFC" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- Declare NFC hardware feature (optional but recommended) -->
     <uses-feature

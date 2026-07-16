@@ -22,6 +22,7 @@ public class Sync{
     private final NFCManager nfcManager;
     private final Activity activity;
     private final Node userNode;
+    private final IrohManager irohManager;
     private static Sync instance;
 
     /**
@@ -33,6 +34,9 @@ public class Sync{
         this.activity = activity;
         this.userNode = userNode;
         this.nfcManager = new NFCManager(this, nfcAdapter);
+        this.irohManager = new IrohManager();
+        irohManager.start();
+
     }
 
     /**
@@ -53,6 +57,8 @@ public class Sync{
         String[] friendPubs = data[2].split("\\|");
 
         graph.addFriendToUser(pub, name);
+
+        irohManager.connect(data[0]);
 
     }
 
@@ -90,7 +96,7 @@ public class Sync{
 
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKeyBytes);
 
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        KeyFactory keyFactory = KeyFactory.getInstance("Ed25519");
 
         return keyFactory.generatePublic(keySpec);
     }
