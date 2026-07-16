@@ -45,6 +45,10 @@
 
         <activity android:name=".SetupActivity" />
 
+        <activity
+            android:name=".PathActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
