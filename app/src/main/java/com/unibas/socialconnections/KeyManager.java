@@ -20,7 +20,7 @@ public class KeyManager {
 
     public static KeyPair generateKeyPair() throws Exception {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance(
-                KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore");
+                KeyProperties.KEY_ALGORITHM_EC, "AndroidKeyStore");
         kpg.initialize(new KeyGenParameterSpec.Builder(
                 ALIAS,
                 KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY)

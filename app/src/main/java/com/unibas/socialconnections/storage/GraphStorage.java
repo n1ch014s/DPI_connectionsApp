@@ -18,7 +18,7 @@ import connections.Node;
 
 public class GraphStorage {
 
-    private static final String KEY_ALGORITHM = "RSA";
+    private static final String KEY_ALGORITHM = "EC";
     private final NodeDao nodeDao;
     private GraphUtil graphUtil;
 

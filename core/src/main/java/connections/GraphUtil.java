@@ -229,6 +229,11 @@ public class GraphUtil {
      */
     public LinkedList<PublicKey[]> fillMinPaths(LinkedList<PublicKey[]> paths, PublicKey otherUser) {
         LinkedList<PublicKey[]> completedPaths = new LinkedList<>();
+        if(paths.isEmpty()) {
+            PublicKey[] path = {otherUser};
+            completedPaths.add(path);
+            return paths;
+        }
         for(int i = 0; i < paths.size(); i++) {
             PublicKey[] curr = paths.get(i);
             Node interfaceNode = nodeList.get(curr[0]);
