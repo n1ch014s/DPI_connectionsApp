@@ -67,8 +67,13 @@ public class Sync{
 
         if(friendMode.equals("1")) {
             graph.addFriendToUser(pub, name);
-            //TODO:   irohManager.gossip(data[0]);
+            PublicKey[] friendsList = graph.getFriendsList();
+            //TODO:   irohManager.gossipSend(encodePublicKeyArray(friendsList).getBytes(StandardCharsets.UTF_8));
+            //TODO:   String encodedRecvFriendsList = new String(irohManager.gossipReceive(data[0]), StandardCharsets.UTF_8);
             Log.d("Iroh", "Gossip Established!");
+            PublicKey[] decodedRecvFriendsList = decodePublicKeyArray(encodedRecvFriendsList);
+            graph.addFriendToFriend(pub, decodedRecvFriendsList);
+
         }else{
             //TODO: reveal name
             irohManager.connect(data[0]);
@@ -140,6 +145,31 @@ public class Sync{
         return keyFactory.generatePublic(keySpec);
     }
 
+    public static String encodePublicKeyArray(PublicKey[] keys) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < keys.length; i++) {
+            sb.append(Base64.getEncoder().encodeToString(keys[i].getEncoded()));
+            if (i < keys.length - 1) sb.append("|");
+        }
+        return sb.toString();
+    }
+
+    public static PublicKey[] decodePublicKeyArray(String data) throws Exception {
+        if (data == null || data.isEmpty()) return new PublicKey[0];
+
+        String[] keyStrings = data.split("\\|");
+        PublicKey[] result = new PublicKey[keyStrings.length];
+
+        KeyFactory keyFactory = KeyFactory.getInstance("EC");
+
+        for (int i = 0; i < keyStrings.length; i++) {
+            byte[] keyBytes = Base64.getDecoder().decode(keyStrings[i]);
+            X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
+            result[i] = keyFactory.generatePublic(spec);
+        }
+        return result;
+    }
+
     public static String encodeKeyDistList(KeyDistTuple[] list) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < list.length; i++) {
@@ -156,7 +186,7 @@ public class Sync{
         String[] entries = data.split(";");
         KeyDistTuple[] result = new KeyDistTuple[entries.length];
 
-        KeyFactory keyFactory = KeyFactory.getInstance("EC"); // matches your decodeString method
+        KeyFactory keyFactory = KeyFactory.getInstance("EC");
 
         for (int i = 0; i < entries.length; i++) {
             String[] parts = entries[i].split(",");
