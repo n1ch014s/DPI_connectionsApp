@@ -43,7 +43,7 @@ public class PathGraphBuilder {
         String userName = graph.getUserNode().getName();
 
         nodeMap.put(userName, new GraphNode(graph.getUserNode().getPublicKey().toString(), userName, 0));
-        if(paths.get(0).length == 1) {
+        if(paths.isEmpty()) {
             nodeMap.put(otherUserName, new GraphNode(paths.get(0)[0].toString(), otherUserName, 1));
             data.nodes.addAll(nodeMap.values());
             return data;

@@ -162,8 +162,13 @@ public class GraphUtil {
      * @return LinkedList of all possible paths with same total length.
      * Longer paths or paths to unknown PublicKeys are omitted.
      */
-    public LinkedList<PublicKey[]> getMinPaths(KeyDistTuple[] list){
+    public LinkedList<PublicKey[]> getMinPaths(KeyDistTuple[] list, PublicKey pub){
         LinkedList<PublicKey[]> paths = new LinkedList<>();
+        if(nodeList.containsKey(pub) && nodeList.get(pub).isFriend) {
+            PublicKey[] path = {pub};
+            paths.add(path);
+            return paths;
+        }
         int currMin = 100;
         //loop through received KeyDistTuple List
         for(int i = 0; i < list.length; i++) {
@@ -172,10 +177,11 @@ public class GraphUtil {
             //if node with key exists
             if(dist > 0) {
                 int totalDist = dist + t.distance;
+                //System.out.println("TotalDist: " + totalDist + ", currMin: " + currMin);
                 //new class of shorter paths found
                 if(totalDist < currMin) {
                     currMin = totalDist;
-                    paths = new LinkedList<>();
+                    paths.clear();
                     PublicKey[] path = new PublicKey[totalDist];
                     //node from list is a friend
                     if(dist == 1) {
@@ -209,8 +215,8 @@ public class GraphUtil {
                         for(PublicKey k : nodeList.get(t.key).friends.keySet()) {
                             if (nodeList.get(k).isFriend) {
                                 path = new PublicKey[totalDist];
-                                path[0] = k;
-                                path[1] = t.key;
+                                path[1] = k;
+                                path[0] = t.key;
                                 paths.add(path);
                             }
                         }
@@ -231,15 +237,16 @@ public class GraphUtil {
     public LinkedList<PublicKey[]> fillMinPaths(LinkedList<PublicKey[]> paths, PublicKey otherUser) {
         LinkedList<PublicKey[]> completedPaths = new LinkedList<>();
         if(paths.isEmpty()) {
-            PublicKey[] path = {otherUser};
-            completedPaths.add(path);
+            return paths;
+        }
+        if(paths.get(0).length == 1) {
             return paths;
         }
         for(int i = 0; i < paths.size(); i++) {
             PublicKey[] curr = paths.get(i);
             Node interfaceNode = nodeList.get(curr[0]);
             if(interfaceNode.isFriend) {
-                PublicKey[] path = new PublicKey[1+curr.length];
+                PublicKey[] path = new PublicKey[curr.length];
                 System.arraycopy(curr, 0, path, 0, curr.length);
                 path[path.length-1] = otherUser;
                 completedPaths.add(path);
@@ -247,9 +254,13 @@ public class GraphUtil {
             else {
                 for(PublicKey p : interfaceNode.friends.keySet()) {
                     if(nodeList.get(p).isFriend) {
-                        PublicKey[] path = new PublicKey[2+curr.length];
+                        PublicKey[] path = new PublicKey[curr.length];
                         path[0] = p;
-                        System.arraycopy(curr, 0, path, 1, curr.length);
+                        int j = 0;
+                        while(curr[j] != null) {
+                            path[j+1] = curr[j];
+                            j++;
+                        }
                         path[path.length-1] = otherUser;
                         completedPaths.add(path);
                     }

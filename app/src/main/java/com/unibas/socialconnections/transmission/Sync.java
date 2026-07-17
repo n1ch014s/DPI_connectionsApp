@@ -83,7 +83,7 @@ public class Sync{
             irohManager.send(encodedNodeList.getBytes(StandardCharsets.UTF_8));
 
             String recvNodeListStr = new String(irohManager.receive(), StandardCharsets.UTF_8);
-            LinkedList<PublicKey[]> minPaths = graph.getMinPaths(decodeKeyDistList(recvNodeListStr));
+            LinkedList<PublicKey[]> minPaths = graph.getMinPaths(decodeKeyDistList(recvNodeListStr), pub);
             String encodedMinPaths = encodePaths(minPaths);
             irohManager.send(encodedMinPaths.getBytes(StandardCharsets.UTF_8));
 

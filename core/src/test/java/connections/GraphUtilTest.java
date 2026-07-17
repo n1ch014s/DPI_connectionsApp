@@ -14,10 +14,17 @@ public class GraphUtilTest {
     private GraphUtil graph;
     private KeyPair userKeys;
 
+    private GraphUtil graph2;
+
+    private KeyPair userKeys2;
+
     @Before
     public void setUp() throws Exception {
         userKeys = generateTestKeyPair();
         graph = new GraphUtil("TestUser", userKeys.getPublic(), userKeys.getPrivate());
+
+        userKeys2 = generateTestKeyPair();
+        graph2 = new GraphUtil("TestUser2", userKeys2.getPublic(), userKeys2.getPrivate());
     }
 
     private static KeyPair generateTestKeyPair() throws Exception {
@@ -96,10 +103,229 @@ public class GraphUtilTest {
                 new KeyDistTuple(friendKeys.getPublic(), 0)
         };
 
-        LinkedList<PublicKey[]> paths = graph.getMinPaths(otherPartyList);
+        LinkedList<PublicKey[]> paths = graph.getMinPaths(otherPartyList, friendKeys.getPublic());
 
         assertFalse(paths.isEmpty());
         assertEquals(1, paths.getFirst().length); // direct friend = 1-hop path
+    }
+
+    @Test
+    public void fillMinPaths_isSameSize() throws Exception {
+        KeyPair friendKeys = generateTestKeyPair();
+        KeyPair friendKeys2 = generateTestKeyPair();
+        KeyPair friendKeys3 = generateTestKeyPair();
+        graph.addFriendToUser(friendKeys.getPublic(), "Alice");
+        graph.addFriendToFriend(friendKeys.getPublic(), friendKeys2.getPublic());
+        graph2.addFriendToUser(friendKeys3.getPublic(), "Bob");
+        graph2.addFriendToFriend(friendKeys3.getPublic(), friendKeys2.getPublic());
+        KeyDistTuple[] list = graph.getList();
+        KeyDistTuple[] list2 = graph2.getList();
+        LinkedList<PublicKey[]> llist = graph.getMinPaths(list2, userKeys2.getPublic());
+        LinkedList<PublicKey[]> llist2 = graph2.getMinPaths(list, userKeys.getPublic());
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).size(), graph2.fillMinPaths(llist, userKeys.getPublic()).size());
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length, graph2.fillMinPaths(llist, userKeys.getPublic()).get(0).length);
+    }
+
+    @Test
+    public void fillMinPaths_findsCorrectDistanceAndPaths1() throws Exception {
+        KeyPair friendKeys = generateTestKeyPair();
+        KeyPair friendKeys2 = generateTestKeyPair();
+        KeyPair friendKeys3 = generateTestKeyPair();
+        graph.addFriendToUser(friendKeys.getPublic(), "Alice");
+        graph.addFriendToFriend(friendKeys.getPublic(), friendKeys2.getPublic());
+        graph2.addFriendToUser(friendKeys3.getPublic(), "Bob");
+        graph2.addFriendToFriend(friendKeys3.getPublic(), friendKeys2.getPublic());
+        KeyDistTuple[] list = graph.getList();
+        KeyDistTuple[] list2 = graph2.getList();
+        LinkedList<PublicKey[]> llist = graph.getMinPaths(list2, userKeys2.getPublic());
+        LinkedList<PublicKey[]> llist2 = graph2.getMinPaths(list, userKeys.getPublic());
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).size(), graph2.fillMinPaths(llist, userKeys.getPublic()).size());
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length, graph2.fillMinPaths(llist, userKeys.getPublic()).get(0).length);
+        assertEquals(4, graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length);
+        assertEquals(1, graph.fillMinPaths(llist2, userKeys2.getPublic()).size());
+    }
+
+    @Test
+    public void fillMinPaths_findsCorrectDistanceAndPaths2() throws Exception {
+        KeyPair friendKeys = generateTestKeyPair();
+        KeyPair friendKeys2 = generateTestKeyPair();
+        KeyPair friendKeys3 = generateTestKeyPair();
+        KeyPair friendKeys4 = generateTestKeyPair();
+        graph.addFriendToUser(friendKeys.getPublic(), "Alice");
+        graph.addFriendToFriend(friendKeys.getPublic(), friendKeys2.getPublic());
+        graph.addFriendToFriend(friendKeys.getPublic(), friendKeys4.getPublic());
+        graph2.addFriendToUser(friendKeys3.getPublic(), "Bob");
+        graph2.addFriendToFriend(friendKeys3.getPublic(), friendKeys2.getPublic());
+        graph2.addFriendToFriend(friendKeys3.getPublic(), friendKeys4.getPublic());
+        KeyDistTuple[] list = graph.getList();
+        KeyDistTuple[] list2 = graph2.getList();
+        LinkedList<PublicKey[]> llist = graph.getMinPaths(list2, userKeys2.getPublic());
+        LinkedList<PublicKey[]> llist2 = graph2.getMinPaths(list, userKeys.getPublic());
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).size(), graph2.fillMinPaths(llist, userKeys.getPublic()).size());
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length, graph2.fillMinPaths(llist, userKeys.getPublic()).get(0).length);
+        assertEquals(4, graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length);
+        assertEquals(2, graph.fillMinPaths(llist2, userKeys2.getPublic()).size());
+    }
+
+    @Test
+    public void fillMinPaths_findsCorrectDistanceAndPaths3() throws Exception {
+        KeyPair friendKeys = generateTestKeyPair();
+        KeyPair friendKeys2 = generateTestKeyPair();
+        KeyPair friendKeys3 = generateTestKeyPair();
+        KeyPair friendKeys4 = generateTestKeyPair();
+        KeyPair friendKeys5 = generateTestKeyPair();
+        graph.addFriendToUser(friendKeys.getPublic(), "Alice");
+        graph.addFriendToUser(friendKeys5.getPublic(), "Charlie");
+        graph.addFriendToFriend(friendKeys.getPublic(), friendKeys2.getPublic());
+        graph.addFriendToFriend(friendKeys.getPublic(), friendKeys4.getPublic());
+        graph.addFriendToFriend(friendKeys5.getPublic(), friendKeys4.getPublic());
+        graph2.addFriendToUser(friendKeys3.getPublic(), "Bob");
+        graph2.addFriendToFriend(friendKeys3.getPublic(), friendKeys2.getPublic());
+        graph2.addFriendToFriend(friendKeys3.getPublic(), friendKeys4.getPublic());
+        KeyDistTuple[] list = graph.getList();
+        KeyDistTuple[] list2 = graph2.getList();
+        LinkedList<PublicKey[]> llist = graph.getMinPaths(list2, userKeys2.getPublic());
+        LinkedList<PublicKey[]> llist2 = graph2.getMinPaths(list, userKeys.getPublic());
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).size(), graph2.fillMinPaths(llist, userKeys.getPublic()).size());
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length, graph2.fillMinPaths(llist, userKeys.getPublic()).get(0).length);
+        assertEquals(4, graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length);
+        assertEquals(3, graph.fillMinPaths(llist2, userKeys2.getPublic()).size());
+    }
+
+    @Test
+    public void fillMinPaths_isMinimal() throws Exception {
+        KeyPair friendKeys = generateTestKeyPair();
+        KeyPair friendKeys2 = generateTestKeyPair();
+        KeyPair friendKeys3 = generateTestKeyPair();
+        graph.addFriendToUser(friendKeys.getPublic(), "Alice");
+        graph.addFriendToFriend(friendKeys.getPublic(), friendKeys2.getPublic());
+        graph.addFriendToFriend(friendKeys.getPublic(), friendKeys3.getPublic());
+        graph2.addFriendToUser(friendKeys3.getPublic(), "Bob");
+        graph2.addFriendToFriend(friendKeys3.getPublic(), friendKeys2.getPublic());
+        graph2.addFriendToFriend(friendKeys3.getPublic(), friendKeys.getPublic());
+        KeyDistTuple[] list = graph.getList();
+        KeyDistTuple[] list2 = graph2.getList();
+        LinkedList<PublicKey[]> llist = graph.getMinPaths(list2, userKeys2.getPublic());
+        LinkedList<PublicKey[]> llist2 = graph2.getMinPaths(list, userKeys.getPublic());
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).size(), graph2.fillMinPaths(llist, userKeys.getPublic()).size());
+        /*System.out.println("Alice: " + friendKeys.getPublic());
+        System.out.println("K2: " + friendKeys2.getPublic());
+        System.out.println("Bob: " + friendKeys3.getPublic());
+        for(PublicKey[] p:graph.getMinPaths(list2)) {
+            System.out.println("Graph 1 min: ");
+            for(PublicKey pub:p) {
+                System.out.println(pub);
+            }
+            System.out.println(" ");
+        }
+        for(PublicKey[] p:graph2.getMinPaths(list)) {
+            System.out.println("Graph 2 min: ");
+            for(PublicKey pub:p) {
+                System.out.println(pub);
+            }
+            System.out.println(" ");
+        }
+        for(PublicKey[] p:graph.fillMinPaths(llist2, userKeys2.getPublic())) {
+            System.out.println("Graph 1 filled: ");
+            for(PublicKey pub:p) {
+                System.out.println(pub);
+            }
+            System.out.println(" ");
+        }
+        System.out.println("-----------------");
+        for(PublicKey[] p:graph2.fillMinPaths(llist, userKeys.getPublic())) {
+            System.out.println("Graph 2 filled: ");
+            for(PublicKey pub:p) {
+                System.out.println(pub);
+            }
+            System.out.println();
+        }*/
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length, graph2.fillMinPaths(llist, userKeys.getPublic()).get(0).length);
+        assertEquals(3, graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length);
+    }
+
+    @Test
+    public void fillMinPaths_noCommonNodes() throws Exception {
+        KeyPair friendKeys = generateTestKeyPair();
+        KeyPair friendKeys2 = generateTestKeyPair();
+        graph.addFriendToUser(friendKeys.getPublic(), "Alice");
+        graph2.addFriendToUser(friendKeys2.getPublic(), "Bob");
+        KeyDistTuple[] list = graph.getList();
+        KeyDistTuple[] list2 = graph2.getList();
+        LinkedList<PublicKey[]> llist = graph.getMinPaths(list2, userKeys2.getPublic());
+        LinkedList<PublicKey[]> llist2 = graph2.getMinPaths(list, userKeys.getPublic());
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).size(), graph2.fillMinPaths(llist, userKeys.getPublic()).size());
+        assertTrue(graph.fillMinPaths(llist2, userKeys2.getPublic()).isEmpty());
+    }
+
+    @Test
+    public void fillMinPaths_sameThreeFriends() throws Exception {
+        KeyPair friendKeys = generateTestKeyPair();
+        KeyPair friendKeys2 = generateTestKeyPair();
+        KeyPair friendKeys3 = generateTestKeyPair();
+        graph.addFriendToUser(friendKeys.getPublic(), "Alice");
+        graph.addFriendToUser(friendKeys2.getPublic(), "Bob");
+        graph.addFriendToUser(friendKeys3.getPublic(), "Charlie");
+        graph.addFriendToFriend(friendKeys.getPublic(), friendKeys2.getPublic());
+        graph.addFriendToFriend(friendKeys3.getPublic(), friendKeys2.getPublic());
+        graph.addFriendToFriend(friendKeys.getPublic(), friendKeys3.getPublic());
+        graph2.addFriendToUser(friendKeys.getPublic(), "Alice");
+        graph2.addFriendToUser(friendKeys2.getPublic(), "Bob");
+        graph2.addFriendToUser(friendKeys3.getPublic(), "Charlie");
+        graph2.addFriendToFriend(friendKeys.getPublic(), friendKeys2.getPublic());
+        graph2.addFriendToFriend(friendKeys3.getPublic(), friendKeys2.getPublic());
+        graph2.addFriendToFriend(friendKeys.getPublic(), friendKeys3.getPublic());
+        KeyDistTuple[] list = graph.getList();
+        KeyDistTuple[] list2 = graph2.getList();
+        LinkedList<PublicKey[]> llist = graph.getMinPaths(list2, userKeys2.getPublic());
+        LinkedList<PublicKey[]> llist2 = graph2.getMinPaths(list, userKeys.getPublic());
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).size(), graph2.fillMinPaths(llist, userKeys.getPublic()).size());
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length, graph2.fillMinPaths(llist, userKeys.getPublic()).get(0).length);
+        assertEquals(2, graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length);
+    }
+
+    @Test
+    public void fillMinPaths_theyAreFriends() throws Exception {
+        graph.addFriendToUser(userKeys2.getPublic(), "Alice");
+        graph2.addFriendToUser(userKeys.getPublic(), "Bob");
+        KeyDistTuple[] list = graph.getList();
+        KeyDistTuple[] list2 = graph2.getList();
+        LinkedList<PublicKey[]> llist = graph.getMinPaths(list2, userKeys2.getPublic());
+        LinkedList<PublicKey[]> llist2 = graph2.getMinPaths(list, userKeys.getPublic());
+        System.out.println("Alice: " + userKeys2.getPublic());
+        System.out.println("Bob: " + userKeys.getPublic());
+        for(PublicKey[] p:llist2) {
+            System.out.println("Graph 1 min: ");
+            for(PublicKey pub:p) {
+                System.out.println(pub);
+            }
+            System.out.println(" ");
+        }
+        for(PublicKey[] p:llist) {
+            System.out.println("Graph 2 min: ");
+            for(PublicKey pub:p) {
+                System.out.println(pub);
+            }
+            System.out.println(" ");
+        }
+        for(PublicKey[] p:graph.fillMinPaths(llist2, userKeys2.getPublic())) {
+            System.out.println("Graph 1 filled: ");
+            for(PublicKey pub:p) {
+                System.out.println(pub);
+            }
+            System.out.println(" ");
+        }
+        System.out.println("-----------------");
+        for(PublicKey[] p:graph2.fillMinPaths(llist, userKeys.getPublic())) {
+            System.out.println("Graph 2 filled: ");
+            for(PublicKey pub:p) {
+                System.out.println(pub);
+            }
+            System.out.println();
+        }
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).size(), graph2.fillMinPaths(llist, userKeys.getPublic()).size());
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length, graph2.fillMinPaths(llist, userKeys.getPublic()).get(0).length);
+        assertEquals(1, graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length);
     }
 
     @Test
