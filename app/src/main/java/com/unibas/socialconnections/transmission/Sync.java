@@ -3,6 +3,7 @@ package com.unibas.socialconnections.transmission;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.nfc.NfcAdapter;
+import android.util.Log;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
@@ -54,11 +55,21 @@ public class Sync{
             e.printStackTrace();
         }
         String name = data[1];
-        String[] friendPubs = data[2].split("\\|");
+        String friendMode = data[2];
+        String[] friendPubs = data[3].split("\\|");
 
-        graph.addFriendToUser(pub, name);
-
-        irohManager.connect(data[0]);
+        if(friendMode.equals("1")) {
+            graph.addFriendToUser(pub, name);
+            //TODO:   irohManager.gossip(data[0]);
+            Log.d("Iroh", "Gossip Established!");
+        }else{
+            //TODO: reveal name
+            irohManager.connect(data[0]);
+            Log.d("Iroh", "Connection Established!");
+            //TODO irohManager.send(MinDistance);
+            //TODO irohManager.receive(MinDistance);
+            //TODO Display Min(LocalMinDistance, RemoteMinDistance)
+        }
 
     }
 
@@ -73,6 +84,12 @@ public class Sync{
         builder.append(pubkeyString);
         builder.append("||");
         builder.append(userNode.getName());
+        builder.append("||");
+        if(nfcManager.getFriendStatus()){
+            builder.append("1");
+        } else{
+            builder.append("0");
+        }
         builder.append("||");
         for (PublicKey pk : nodeList) {
             String pkString = Base64.getEncoder().encodeToString(pk.getEncoded());
@@ -96,7 +113,7 @@ public class Sync{
 
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKeyBytes);
 
-        KeyFactory keyFactory = KeyFactory.getInstance("Ed25519");
+        KeyFactory keyFactory = KeyFactory.getInstance("EC");
 
         return keyFactory.generatePublic(keySpec);
     }

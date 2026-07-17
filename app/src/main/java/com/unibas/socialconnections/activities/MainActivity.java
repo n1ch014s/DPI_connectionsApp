@@ -113,19 +113,38 @@ public class MainActivity extends AppCompatActivity {
     private void setupButtons(){
         Button hostButton = findViewById(R.id.hostButton);
         Button clientButton = findViewById(R.id.connectButton);
-
+        Button clientFriend = findViewById(R.id.clientFriend);
+        Button hostFriend = findViewById(R.id.hostFriend);
 
         hostButton.setOnClickListener(v -> {
+            nfcManager.setFriendMode(false);
             nfcManager.startHost();
 
             Toast.makeText(this, "Waiting for connection...", Toast.LENGTH_SHORT).show();
         });
 
+        hostFriend.setOnClickListener(v -> {
+            nfcManager.setFriendMode(true);
+            nfcManager.startHost();
+
+            Toast.makeText(this, "Adding Friend: Host", Toast.LENGTH_SHORT).show();
+        });
+
         clientButton.setOnClickListener(v -> {
+            nfcManager.setFriendMode(false);
             nfcManager.startClient();
 
             Toast.makeText(this, "Connecting to Host...", Toast.LENGTH_SHORT).show();
         });
+
+        clientFriend.setOnClickListener(v -> {
+            nfcManager.setFriendMode(true);
+            nfcManager.startClient();
+
+            Toast.makeText(this, "Adding Friend: Host", Toast.LENGTH_SHORT).show();
+        });
+
+
     }
 
 

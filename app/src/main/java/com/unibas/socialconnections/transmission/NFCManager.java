@@ -18,6 +18,7 @@ public class NFCManager{
     private final Sync sync;
     private final NfcAdapter nfcAdapter;
     private boolean hosting = false;
+    private boolean friendMode = false;
     //Activate on button press
 
     // Phone A turns on reader mode while B is HostApduService
@@ -148,5 +149,13 @@ public class NFCManager{
      */
     public void setHostingStatus(boolean b) {
         hosting = b;
+    }
+
+    public void setFriendMode(boolean b) {
+        friendMode = b;
+    }
+
+    public boolean getFriendStatus() {
+        return friendMode;
     }
 }
