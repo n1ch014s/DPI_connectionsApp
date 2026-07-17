@@ -3,10 +3,10 @@ package connections;
 import java.security.PublicKey;
 
 public class KeyDistTuple {
-    PublicKey key;
-    int distance;
+    public PublicKey key;
+    public int distance;
 
-    KeyDistTuple(PublicKey k, int d) {
+    public KeyDistTuple(PublicKey k, int d) {
         key = k;
         distance = d;
     }
