@@ -115,6 +115,7 @@ public class GraphUtil {
         }
         else {
             Node friend = new Node(pub, name);
+            nodeList.put(pub, friend);
             userNode.addFriend(friend);
         }
     }
