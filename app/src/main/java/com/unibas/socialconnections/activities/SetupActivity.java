@@ -1,4 +1,4 @@
-package com.unibas.socialconnections;
+package com.unibas.socialconnections.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,6 +12,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.unibas.socialconnections.KeyManager;
+import com.unibas.socialconnections.R;
+import com.unibas.socialconnections.SetupPrefs;
 import com.unibas.socialconnections.storage.GraphStorage;
 
 import java.security.KeyPair;

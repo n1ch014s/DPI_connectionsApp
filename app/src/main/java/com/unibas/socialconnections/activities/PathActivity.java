@@ -1,4 +1,4 @@
-package com.unibas.socialconnections;
+package com.unibas.socialconnections.activities;
 
 import android.os.Bundle;
 import android.widget.Toast;
@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.unibas.socialconnections.GUI.PathGraphBuilder;
 import com.unibas.socialconnections.GUI.PathGraphView;
 import com.unibas.socialconnections.GUI.PathHolder;
+import com.unibas.socialconnections.R;
 
 public class PathActivity extends AppCompatActivity {
 

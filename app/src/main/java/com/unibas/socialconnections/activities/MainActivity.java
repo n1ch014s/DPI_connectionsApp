@@ -1,4 +1,4 @@
-package com.unibas.socialconnections;
+package com.unibas.socialconnections.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -20,6 +20,9 @@ import java.util.concurrent.Executors;
 import connections.GraphUtil;
 import connections.Node;
 
+import com.unibas.socialconnections.KeyManager;
+import com.unibas.socialconnections.R;
+import com.unibas.socialconnections.SetupPrefs;
 import com.unibas.socialconnections.storage.GraphStorage;
 import com.unibas.socialconnections.transmission.NFCManager;
 import com.unibas.socialconnections.transmission.Sync;
