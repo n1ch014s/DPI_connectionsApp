@@ -271,4 +271,19 @@ public class GraphUtil {
         }
         return list;
     }
+
+    public PublicKey[] getFriendsList(PublicKey pk) {
+        if(nodeList.containsKey(pk)) {
+            PublicKey[] list = new PublicKey[nodeList.get(pk).friends.size()];
+            int i = 0;
+            for (PublicKey pub : nodeList.get(pk).friends.keySet()) {
+                list[i] = pub;
+                i++;
+            }
+            return list;
+        }
+        else {
+            return null;
+        }
+    }
 }
