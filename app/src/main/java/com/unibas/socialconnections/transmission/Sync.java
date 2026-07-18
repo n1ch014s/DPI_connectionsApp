@@ -40,7 +40,7 @@ public class Sync implements MessageListener{
     private final Gossip gossip;
     private static Sync instance;
 
-    private ConcurrentHashMap<UUID, Packet> receivedPackets;
+    private ConcurrentHashMap<UUID, Packet> receivedPackets = new ConcurrentHashMap<>();
     private MessageTuple recvNodeListBytes;
     private MessageTuple encodedRecvMinPathBytes;
     private MessageTuple updateBytes;
@@ -127,6 +127,8 @@ public class Sync implements MessageListener{
 
                 Log.d("Iroh", "Connection Established!");
 
+                Node contact = new Node(pub, name, ticket);
+
                 /**
                  * compare node lists
                  */
@@ -135,7 +137,7 @@ public class Sync implements MessageListener{
                 Packet nodePacket = new Packet(UUID.randomUUID(), MessageType.NODE_LIST, encodedNodeList.getBytes(StandardCharsets.UTF_8));
                 irohManager.send(ticket, nodePacket.toBytes());
 
-                waitFor(pub, MessageType.NODE_LIST);
+                waitFor(contact, MessageType.NODE_LIST);
                 String recvNodeListStr = new String(recvNodeListBytes.getMessage(), StandardCharsets.UTF_8);
                 recvNodeListStr = null;
 
@@ -147,7 +149,7 @@ public class Sync implements MessageListener{
                 Packet minPathPacket = new Packet(UUID.randomUUID(), MessageType.MIN_PATH, encodedMinPaths.getBytes(StandardCharsets.UTF_8));
                 irohManager.send(ticket, minPathPacket.toBytes());
 
-                waitFor(pub, MessageType.MIN_PATH);
+                waitFor(contact, MessageType.MIN_PATH);
                 String encodedRecvMinPaths = new String(encodedRecvMinPathBytes.getMessage(), StandardCharsets.UTF_8);
                 encodedRecvMinPaths = null;
 
@@ -324,16 +326,19 @@ public class Sync implements MessageListener{
     @Override
     public void onMessage(EndpointId sender, byte[] payload) {
 
+        Log.d("MSG", "Message Received: " + sender + " | " + payload);
+
         Packet packet = Packet.fromBytes(payload);
         UUID uuid = packet.getUUID();
-        receivedPackets.put(uuid, packet);
+        //receivedPackets.put(uuid, packet);
 
         MessageType messageType = packet.getMessageType();
+        Log.d("MSG", "MessageType: " + messageType);
         byte[] message = packet.getPayload();
-        PublicKey senderPK = null;
+        String senderTicket = null;
 
         try {
-            senderPK = decodeString(sender.toString());
+            senderTicket = sender.toString();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -341,19 +346,19 @@ public class Sync implements MessageListener{
         switch (messageType){
             case UPDATE:
                 //TODO what and how do we update?
-                updateBytes = new MessageTuple(senderPK, message);
+                updateBytes = new MessageTuple(senderTicket, message);
                 break;
             case NODE_LIST:
-                recvNodeListBytes = new MessageTuple(senderPK, message);
+                recvNodeListBytes = new MessageTuple(senderTicket, message);
                 break;
             case MIN_PATH:
-                encodedRecvMinPathBytes = new MessageTuple(senderPK, message);
+                encodedRecvMinPathBytes = new MessageTuple(senderTicket, message);
                 break;
         }
 
     }
 
-    private void waitFor(PublicKey sender, MessageType type) throws TimeoutException, InterruptedException {
+    private void waitFor(Node sender, MessageType type) throws TimeoutException, InterruptedException {
         MessageTuple tuple = null;
         if(type.equals(MessageType.NODE_LIST)){
            tuple = recvNodeListBytes;
@@ -362,7 +367,7 @@ public class Sync implements MessageListener{
         }
 
         long timeout = System.currentTimeMillis() + 30000;
-        while (tuple == null || !tuple.getSender().equals(sender)){
+        while (tuple == null || !tuple.getSender().equals(sender.endpointId)){
             if(System.currentTimeMillis() > timeout){
                 TimeoutException e = new TimeoutException("Node List not received in time");
                 e.printStackTrace();

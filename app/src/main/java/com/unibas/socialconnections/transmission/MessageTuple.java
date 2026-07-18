@@ -2,16 +2,18 @@ package com.unibas.socialconnections.transmission;
 
 import java.security.PublicKey;
 
+import computer.iroh.EndpointId;
+
 public class MessageTuple {
-    private PublicKey sender;
+    private String sender;
     private byte[] message;
 
-    public MessageTuple(PublicKey sender, byte[] message){
+    public MessageTuple(String sender, byte[] message){
         this.sender = sender;
         this.message = message;
     }
 
-    public PublicKey getSender(){
+    public String getSender(){
         return sender;
     }
 
