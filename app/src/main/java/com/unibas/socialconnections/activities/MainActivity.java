@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                         mainHandler.post(() -> {
                             this.graph = graph;
                             this.userNode = graph.getUserNode();
-                            Sync sync = new Sync(graph, nfcAdapter, this, userNode);
+                            Sync sync = new Sync(graph, graphStorage, nfcAdapter, this, userNode);
                             this.nfcManager = sync.getNfcManager();
                             setupButtons();
                         });
