@@ -4,11 +4,12 @@
     android:layout_height="match_parent">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/pathSummaryText"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Connection Paths Found"
-        android:textSize="20sp"
-        android:padding="16dp"/>
+        android:textSize="16sp"
+        android:padding="16dp"
+        android:lineSpacingExtra="4dp"/>
 
     <com.unibas.socialconnections.GUI.PathGraphView
         android:id="@+id/pathGraphView"

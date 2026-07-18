@@ -93,4 +93,15 @@ public class PathGraphBuilder {
             return id;
         }
     }
+
+    public static int getConnectionDistance(GraphData data) {
+        if (data.edges.isEmpty()) {
+            return -1; // no connection found
+        }
+        int maxLayer = 0;
+        for (GraphNode n : data.nodes) {
+            maxLayer = Math.max(maxLayer, n.layer);
+        }
+        return maxLayer;
+    }
 }

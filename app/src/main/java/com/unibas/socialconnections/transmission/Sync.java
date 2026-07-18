@@ -146,6 +146,7 @@ public class Sync implements MessageListener{
                 PathGraphBuilder.GraphData graphData = PathGraphBuilder.build(filledMinPaths, graph, name);
 
                 PathHolder.pendingData = graphData;
+                PathHolder.otherUsername = name;
                 activity.runOnUiThread(() -> {
                     Intent intent = new Intent(activity, PathActivity.class);
                     activity.startActivity(intent);
