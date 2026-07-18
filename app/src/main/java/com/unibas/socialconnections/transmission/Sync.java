@@ -10,6 +10,7 @@ import com.unibas.socialconnections.GUI.PathGraphBuilder;
 import com.unibas.socialconnections.GUI.PathHolder;
 import com.unibas.socialconnections.KeyManager;
 import com.unibas.socialconnections.activities.PathActivity;
+import com.unibas.socialconnections.storage.GraphStorage;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
@@ -31,6 +32,7 @@ import connections.Node;
  */
 public class Sync implements MessageListener{
     private final GraphUtil graph;
+    private final GraphStorage graphStorage;
     private final NFCManager nfcManager;
     private final Activity activity;
     private final Node userNode;
@@ -47,12 +49,14 @@ public class Sync implements MessageListener{
     /**
      * Creates a Sync Manager which controls and processing of incoming and outgoing nodes
      * @param graph the graph which contains the friend data
+     * @param graphStorage
      * @param nfcAdapter
      * @param activity
      * @param userNode
      */
-    public Sync(GraphUtil graph, NfcAdapter nfcAdapter, Activity activity, Node userNode){
+    public Sync(GraphUtil graph, GraphStorage graphStorage, NfcAdapter nfcAdapter, Activity activity, Node userNode){
         this.graph = graph;
+        this.graphStorage = graphStorage;
         this.activity = activity;
         this.userNode = userNode;
         this.nfcManager = new NFCManager(this, nfcAdapter);
@@ -102,6 +106,8 @@ public class Sync implements MessageListener{
             try {
                 Log.d("Iroh", "Gossip Established!");
                 graph.addFriendToUser(pub, name);
+                graphStorage.saveNode(graph.nodeList.get(pub));
+                graphStorage.saveFriendship(graph.getUserNode(), graph.nodeList.get(pub));
                 PublicKey[] friendsList = graph.getFriendsList();
                 gossip.publish(encodePublicKeyArray(friendsList).getBytes(StandardCharsets.UTF_8));
 
@@ -133,7 +139,7 @@ public class Sync implements MessageListener{
                 String recvNodeListStr = new String(recvNodeListBytes.getMessage(), StandardCharsets.UTF_8);
                 recvNodeListStr = null;
 
-                /**
+                /*
                  * compare min paths
                  */
                 LinkedList<PublicKey[]> minPaths = graph.getMinPaths(decodeKeyDistList(recvNodeListStr), pub);
@@ -145,7 +151,7 @@ public class Sync implements MessageListener{
                 String encodedRecvMinPaths = new String(encodedRecvMinPathBytes.getMessage(), StandardCharsets.UTF_8);
                 encodedRecvMinPaths = null;
 
-                /**
+                /*
                  * build with min path
                  */
                 LinkedList<PublicKey[]> filledMinPaths = graph.fillMinPaths(decodePaths(encodedRecvMinPaths), pub);
