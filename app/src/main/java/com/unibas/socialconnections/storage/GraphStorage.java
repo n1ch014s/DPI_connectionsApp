@@ -64,6 +64,7 @@ public class GraphStorage {
 
                         Node node = new Node(pub, entity.name);
                         node.isFriend = entity.isFriend;
+                        node.endpointId = entity.endpointId;
                         graphUtil.nodeList.put(pub, node);
                     } catch (Exception e) {
                         e.printStackTrace(); // consider proper logging
@@ -108,7 +109,8 @@ public class GraphStorage {
                         encodeKey(node.publicKey),
                         node.name,
                         node.isFriend,
-                        node.isUser
+                        node.isUser,
+                        node.endpointId
                 );
                 nodeDao.insertNode(entity);
                 return null;
@@ -122,9 +124,9 @@ public class GraphStorage {
             protected Void doInBackground(Void... voids) {
                 // Make sure both nodes exist in the DB first
                 nodeDao.insertNode(new NodeEntity(
-                        encodeKey(owner.publicKey), owner.name, owner.isFriend, owner.isUser));
+                        encodeKey(owner.publicKey), owner.name, owner.isFriend, owner.isUser, owner.endpointId));
                 nodeDao.insertNode(new NodeEntity(
-                        encodeKey(friend.publicKey), friend.name, friend.isFriend, friend.isUser));
+                        encodeKey(friend.publicKey), friend.name, friend.isFriend, friend.isUser, friend.endpointId));
 
                 nodeDao.insertFriendship(new FriendshipEntity(
                         encodeKey(owner.publicKey),
