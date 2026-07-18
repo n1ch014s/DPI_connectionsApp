@@ -2,6 +2,7 @@ package connections;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -279,6 +280,16 @@ public class GraphUtil {
         int i = 0;
         for(PublicKey pub : userNode.friends.keySet()) {
             list[i] = pub;
+            i++;
+        }
+        return list;
+    }
+
+    public String[] getFriendsListString(){
+        String[] list = new String[userNode.friends.size()];
+        int i = 0;
+        for(PublicKey pub : getFriendsList()){
+            list[i] = Base64.getEncoder().encodeToString(pub.getEncoded());
             i++;
         }
         return list;

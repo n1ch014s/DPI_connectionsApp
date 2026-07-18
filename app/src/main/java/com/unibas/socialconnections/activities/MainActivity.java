@@ -144,8 +144,6 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Adding Friend: Host", Toast.LENGTH_SHORT).show();
         });
 
-
     }
-
 
 }

@@ -15,9 +15,11 @@ import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
+import computer.iroh.EndpointId;
 import connections.GraphUtil;
 import connections.KeyDistTuple;
 import connections.Node;
@@ -25,17 +27,27 @@ import connections.Node;
 /** The Peer to Peer synchronisation.
  *
  */
-public class Sync{
+public class Sync implements MessageListener{
     private final GraphUtil graph;
     private final NFCManager nfcManager;
     private final Activity activity;
     private final Node userNode;
     private final IrohManager irohManager;
+    private final Gossip gossip;
     private static Sync instance;
+
+    private ConcurrentHashMap<UUID, Packet> receivedPackets;
+    private MessageTuple recvNodeListBytes;
+    private MessageTuple encodedRecvMinPathBytes;
+    private MessageTuple updateBytes;
+
 
     /**
      * Creates a Sync Manager which controls and processing of incoming and outgoing nodes
      * @param graph the graph which contains the friend data
+     * @param nfcAdapter
+     * @param activity
+     * @param userNode
      */
     public Sync(GraphUtil graph, NfcAdapter nfcAdapter, Activity activity, Node userNode){
         this.graph = graph;
@@ -43,7 +55,9 @@ public class Sync{
         this.userNode = userNode;
         this.nfcManager = new NFCManager(this, nfcAdapter);
         this.irohManager = new IrohManager();
-        irohManager.start();
+        irohManager.start(graph);
+        irohManager.startReceiving(this);
+        this.gossip = new Gossip(irohManager);
 
     }
 
@@ -51,8 +65,8 @@ public class Sync{
      * Parses and Processes incoming JSON data, turning them into nodes
      * @param info the incoming data, this is turned into a node with a friend list
      */
-    public void processIncoming(String info) throws Exception {
-        // info built like: public key || name || friend | friend | friend
+    public void processIncoming(String info){
+        // info built like: public key || name || friendModeBit || friend | friend | friend
         String[] data;
         data = info.split("\\|\\|");
         PublicKey pub = null;
@@ -63,39 +77,75 @@ public class Sync{
         }
         String name = data[1];
         String friendMode = data[2];
-        String[] friendPubs = data[3].split("\\|");
+        String friendPubs = data[3];
+
+        if(getHostingStatus()){
+            irohManager.connect(data[0]);
+        }else {
+            irohManager.accept();
+        }
 
         if(friendMode.equals("1")) {
-            graph.addFriendToUser(pub, name);
-            PublicKey[] friendsList = graph.getFriendsList();
-            //TODO:   irohManager.gossipSend(encodePublicKeyArray(friendsList).getBytes(StandardCharsets.UTF_8));
-            //TODO:   String encodedRecvFriendsList = new String(irohManager.gossipReceive(data[0]), StandardCharsets.UTF_8);
-            Log.d("Iroh", "Gossip Established!");
-            PublicKey[] decodedRecvFriendsList = decodePublicKeyArray(encodedRecvFriendsList);
-            graph.addFriendToFriend(pub, decodedRecvFriendsList);
+            try {
+                Log.d("Iroh", "Gossip Established!");
+                graph.addFriendToUser(pub, name);
+                PublicKey[] friendsList = graph.getFriendsList();
+                gossip.publish(encodePublicKeyArray(friendsList).getBytes(StandardCharsets.UTF_8));
 
+                //String encodedRecvFriendsList = new String(gossip.receive(data[0]), StandardCharsets.UTF_8); This is unnecessary as weve already passed the friend list over nfc
+
+                PublicKey[] decodedRecvFriendsList = decodePublicKeyArray(friendPubs);
+                graph.addFriendToFriend(pub, decodedRecvFriendsList);
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }else{
-            //TODO: reveal name
-            irohManager.connect(data[0]);
-            Log.d("Iroh", "Connection Established!");
-            KeyDistTuple[] nodeList = graph.getList();
-            String encodedNodeList = encodeKeyDistList(nodeList);
-            irohManager.send(encodedNodeList.getBytes(StandardCharsets.UTF_8));
+            try {
+                //TODO: reveal name
 
-            String recvNodeListStr = new String(irohManager.receive(), StandardCharsets.UTF_8);
-            LinkedList<PublicKey[]> minPaths = graph.getMinPaths(decodeKeyDistList(recvNodeListStr), pub);
-            String encodedMinPaths = encodePaths(minPaths);
-            irohManager.send(encodedMinPaths.getBytes(StandardCharsets.UTF_8));
+                Log.d("Iroh", "Connection Established!");
 
-            String encodedRecvMinPaths = new String(irohManager.receive(), StandardCharsets.UTF_8);
-            LinkedList<PublicKey[]> filledMinPaths = graph.fillMinPaths(decodePaths(encodedRecvMinPaths), pub);
-            PathGraphBuilder.GraphData graphData = PathGraphBuilder.build(filledMinPaths, graph, name);
+                /**
+                 * compare node lists
+                 */
+                KeyDistTuple[] nodeList = graph.getList();
+                String encodedNodeList = encodeKeyDistList(nodeList);
+                Packet nodePacket = new Packet(UUID.randomUUID(), MessageType.NODE_LIST, encodedNodeList.getBytes(StandardCharsets.UTF_8));
+                irohManager.send(encodeString(pub), nodePacket.toBytes());
 
-            PathHolder.pendingData = graphData;
-            activity.runOnUiThread(() -> {
-                Intent intent = new Intent(activity, PathActivity.class);
-                activity.startActivity(intent);
-            });
+                while (recvNodeListBytes.getSender() != pub){
+                    wait();
+                }
+                String recvNodeListStr = new String(recvNodeListBytes.getMessage(), StandardCharsets.UTF_8);
+
+                /**
+                 * compare min paths
+                 */
+                LinkedList<PublicKey[]> minPaths = graph.getMinPaths(decodeKeyDistList(recvNodeListStr), pub);
+                String encodedMinPaths = encodePaths(minPaths);
+                Packet minPathPacket = new Packet(UUID.randomUUID(), MessageType.MIN_PATH, encodedMinPaths.getBytes(StandardCharsets.UTF_8));
+                irohManager.send(encodeString(pub), minPathPacket.toBytes());
+
+                while (encodedRecvMinPathBytes.getSender() != pub){
+                    wait();
+                }
+                String encodedRecvMinPaths = new String(encodedRecvMinPathBytes.getMessage(), StandardCharsets.UTF_8);
+
+                /**
+                 * build with min path
+                 */
+                LinkedList<PublicKey[]> filledMinPaths = graph.fillMinPaths(decodePaths(encodedRecvMinPaths), pub);
+                PathGraphBuilder.GraphData graphData = PathGraphBuilder.build(filledMinPaths, graph, name);
+
+                PathHolder.pendingData = graphData;
+                activity.runOnUiThread(() -> {
+                    Intent intent = new Intent(activity, PathActivity.class);
+                    activity.startActivity(intent);
+                });
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
 
     }
@@ -107,7 +157,7 @@ public class Sync{
     public String processOutgoing(){
         PublicKey[] nodeList = graph.getFriendsList();
         StringBuilder builder = new StringBuilder();
-        String pubkeyString = Base64.getEncoder().encodeToString(userNode.getPublicKey().getEncoded());
+        String pubkeyString = encodeString(userNode.getPublicKey());
         builder.append(pubkeyString);
         builder.append("||");
         builder.append(userNode.getName());
@@ -119,7 +169,7 @@ public class Sync{
         }
         builder.append("||");
         for (PublicKey pk : nodeList) {
-            String pkString = Base64.getEncoder().encodeToString(pk.getEncoded());
+            String pkString = encodeString(pk);
             builder.append(pkString);
             builder.append("|");
         }
@@ -143,6 +193,15 @@ public class Sync{
         KeyFactory keyFactory = KeyFactory.getInstance("EC");
 
         return keyFactory.generatePublic(keySpec);
+    }
+
+    /**
+     * Translate a publicKey into a string. it isnt a crazy method, i just got sick of typing that whole thing
+     * @param pub the publickey which is to be encoded
+     * @return encoded String
+     */
+    public String encodeString(PublicKey pub){
+        return Base64.getEncoder().encodeToString(pub.getEncoded());
     }
 
     public static String encodePublicKeyArray(PublicKey[] keys) {
@@ -237,6 +296,45 @@ public class Sync{
     }
 
 
+
+    /**
+     * receiving messages over Iroh
+     * @param sender The sender of the received packet
+     * @param payload The received message to be parsed
+     */
+    @Override
+    public void onMessage(EndpointId sender, byte[] payload) {
+
+        Packet packet = Packet.fromBytes(payload);
+        UUID uuid = packet.getUUID();
+        receivedPackets.put(uuid, packet);
+
+        MessageType messageType = packet.getMessageType();
+        byte[] message = packet.getPayload();
+        PublicKey senderPK = null;
+
+        try {
+            senderPK = decodeString(sender.toString());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        switch (messageType){
+            case UPDATE:
+                //TODO what and how do we update?
+                recvNodeListBytes = new MessageTuple(senderPK, message);
+                break;
+            case NODE_LIST:
+                recvNodeListBytes = new MessageTuple(senderPK, message);
+                break;
+            case MIN_PATH:
+                recvNodeListBytes = new MessageTuple(senderPK, message);
+                break;
+        }
+
+    }
+
+
     /*----------------- Getters ---------------------------*/
     public NFCManager getNfcManager() {
         return nfcManager;
@@ -257,4 +355,6 @@ public class Sync{
     public void setHostingStatus(boolean b) {
         nfcManager.setHostingStatus(b);
     }
+
+
 }
