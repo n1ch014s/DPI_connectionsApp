@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
 
                     GraphUtil graph = new GraphUtil(finalUsername, keyPair.getPublic(), (PrivateKey) keyPair.getPrivate());
                     graphStorage.setGraphUtil(graph);
+                    graphStorage.saveNode(graph.getUserNode());
 
                     graphStorage.loadGraphFromDatabase(() -> {
                         mainHandler.post(() -> {

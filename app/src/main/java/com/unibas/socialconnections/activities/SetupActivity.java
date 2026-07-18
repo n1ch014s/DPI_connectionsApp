@@ -44,7 +44,7 @@ public class SetupActivity extends AppCompatActivity {
         continueButton = findViewById(R.id.continueButton);
         progressBar = findViewById(R.id.progressBar);
 
-        continueButton.setEnabled(false); // disabled until key is ready
+        continueButton.setEnabled(false);
 
         // Start key generation right away, in the background
         executor.execute(() -> {
@@ -74,7 +74,6 @@ public class SetupActivity extends AppCompatActivity {
         }
 
         if (generatedKeyPair == null) {
-            // Shouldn't happen since button is disabled until ready, but guard anyway
             Toast.makeText(this, "Still generating your key, please wait", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -86,8 +85,8 @@ public class SetupActivity extends AppCompatActivity {
         continueButton.setEnabled(false);
 
         GraphUtil graph = new GraphUtil(username, keyPair.getPublic(), (PrivateKey) keyPair.getPrivate());
-        GraphStorage graphStorage = new GraphStorage(getApplicationContext()); // updated constructor
-        graphStorage.setGraphUtil(graph); // NEW
+        GraphStorage graphStorage = new GraphStorage(getApplicationContext());
+        graphStorage.setGraphUtil(graph);
         graphStorage.saveNode(graph.getUserNode());
 
         SetupPrefs.setSetupComplete(getApplicationContext());

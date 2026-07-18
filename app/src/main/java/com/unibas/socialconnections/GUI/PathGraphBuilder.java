@@ -59,7 +59,7 @@ public class PathGraphBuilder {
                 }
                 if(i == path.length -1) {
                     nodeMap.putIfAbsent(otherUserName, new GraphNode(pub.toString(), otherUserName, path.length));
-                    continue;
+                    idMap.putIfAbsent(pub, otherUserName);
                 }
                 String id = getID(pub, graph);
                 nodeMap.putIfAbsent(id, new GraphNode(pub.toString(), id, i+1));
