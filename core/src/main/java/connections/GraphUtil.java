@@ -9,6 +9,7 @@ import java.util.LinkedList;
 
 public class GraphUtil {
     public HashMap<PublicKey, Node> nodeList;
+    public HashMap<String, PublicKey> keyList;
     public Node userNode;
 
     /**
@@ -22,6 +23,7 @@ public class GraphUtil {
     public GraphUtil(String userName, PublicKey pub, PrivateKey priv){
         userNode = new Node(pub, userName, priv);
         nodeList = new HashMap<>();
+        keyList = new HashMap<>();
         nodeList.put(pub, userNode);
     }
 
@@ -40,6 +42,7 @@ public class GraphUtil {
         else {
             Node friend = new Node(pub);
             nodeList.put(pub, friend);
+            keyList.put(node.endpointId, pub);
             node.addFriend(friend);
         }
     }
@@ -308,5 +311,13 @@ public class GraphUtil {
         else {
             return null;
         }
+    }
+
+    public void addToKeyList(String ticket, PublicKey pk){
+        keyList.put(ticket, pk);
+    }
+
+    public HashMap<String, PublicKey> getKeyList(){
+        return keyList;
     }
 }

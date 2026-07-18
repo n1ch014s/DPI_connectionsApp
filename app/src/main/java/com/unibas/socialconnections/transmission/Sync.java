@@ -106,6 +106,7 @@ public class Sync implements MessageListener{
             try {
                 Log.d("Iroh", "Gossip Established!");
                 graph.addFriendToUser(pub, name);
+                graph.nodeList.get(pub).setEndpointId(ticket);
                 graphStorage.saveNode(graph.nodeList.get(pub));
                 graphStorage.saveFriendship(graph.getUserNode(), graph.nodeList.get(pub));
                 PublicKey[] friendsList = graph.getFriendsList();
@@ -126,8 +127,6 @@ public class Sync implements MessageListener{
             }
         }else{
             try {
-                //TODO: reveal name
-
                 Log.d("Iroh", "Connection Established!");
 
                 Node contact = new Node(pub, name, ticket);
@@ -142,7 +141,7 @@ public class Sync implements MessageListener{
 
                 waitFor(contact, MessageType.NODE_LIST);
                 String recvNodeListStr = new String(recvNodeListBytes.getMessage(), StandardCharsets.UTF_8);
-                recvNodeListStr = null;
+
 
                 /*
                  * compare min paths
@@ -154,7 +153,7 @@ public class Sync implements MessageListener{
 
                 waitFor(contact, MessageType.MIN_PATH);
                 String encodedRecvMinPaths = new String(encodedRecvMinPathBytes.getMessage(), StandardCharsets.UTF_8);
-                encodedRecvMinPaths = null;
+
 
                 /*
                  * build with min path
@@ -350,6 +349,7 @@ public class Sync implements MessageListener{
             case UPDATE:
                 //TODO what and how do we update?
                 updateBytes = new MessageTuple(senderTicket, message);
+                handleUpdate(senderTicket, message);
                 break;
             case NODE_LIST:
                 recvNodeListBytes = new MessageTuple(senderTicket, message);
@@ -359,6 +359,22 @@ public class Sync implements MessageListener{
                 break;
         }
 
+    }
+
+    private void handleUpdate(String senderTicket, byte[] message){
+
+        PublicKey pub = graph.getKeyList().get(senderTicket);
+        String friendslist = new String(message, StandardCharsets.UTF_8);
+        PublicKey[] decodedRecvFriendsList = null;
+        try {
+            decodedRecvFriendsList  = decodePublicKeyArray(friendslist);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        graph.addFriendToFriend(pub, decodedRecvFriendsList);
+        for(PublicKey p:decodedRecvFriendsList) {
+            graphStorage.saveNode(graph.nodeList.get(p));
+        }
     }
 
     private void waitFor(Node sender, MessageType type) throws TimeoutException, InterruptedException {
