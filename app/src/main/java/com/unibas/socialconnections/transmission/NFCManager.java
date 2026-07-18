@@ -48,9 +48,11 @@ public class NFCManager{
         Log.d("HOST", "Host opened");
 
         new Handler().postDelayed(() -> {
-            setHostingStatus(false);
-            Toast.makeText(sync.getActivity(), "Timeout: Hosting closed", Toast.LENGTH_SHORT).show();
-            Log.d("HOST", "Host closed");
+            if(getHostingStatus()) {
+                setHostingStatus(false);
+                Toast.makeText(sync.getActivity(), "Timeout: Hosting closed", Toast.LENGTH_SHORT).show();
+                Log.d("HOST", "Host closed");
+            }
         }, 60000);
     }
 

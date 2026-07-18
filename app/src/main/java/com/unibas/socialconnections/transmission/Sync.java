@@ -57,8 +57,9 @@ public class Sync implements MessageListener{
         this.userNode = userNode;
         this.nfcManager = new NFCManager(this, nfcAdapter);
         this.irohManager = new IrohManager();
-        irohManager.start(graph);
+        irohManager.start(graph, KeyManager.getIrohSecretKey(userNode.getPrivateKey()));
         irohManager.startReceiving(this);
+
         this.gossip = new Gossip(irohManager);
         instance = this;
 
@@ -69,7 +70,7 @@ public class Sync implements MessageListener{
      * @param info the incoming data, this is turned into a node with a friend list
      */
     public void processIncoming(String info){
-        // info built like: public key || name || friendModeBit || friend | friend | friend
+        // info built like: public key || name || Iroh Endpoint || friendModeBit || friend | friend | friend
         String[] data;
         data = info.split("\\|\\|");
         PublicKey pub = null;
@@ -80,16 +81,21 @@ public class Sync implements MessageListener{
             e.printStackTrace();
         }
         String name = data[1];
-        String friendMode = data[2];
+        String ticket = data[2];
+        String friendMode = data[3];
         String friendPubs = null;
-        if(data.length > 3 ){
+        if(data.length > 4 ){
             friendPubs = data[3];
         }
 
         if(getHostingStatus()){
-            irohManager.connect(data[0]);
+            irohManager.connect(ticket);
+            setHostingStatus(false);
+            Log.d("HOST", "Host closed");
         }else {
-            irohManager.accept();
+            Log.d("Iroh", "Accepting next connection...");
+            irohManager.accept(ticket);
+
         }
 
         if(friendMode.equals("1")) {
@@ -121,7 +127,7 @@ public class Sync implements MessageListener{
                 KeyDistTuple[] nodeList = graph.getList();
                 String encodedNodeList = encodeKeyDistList(nodeList);
                 Packet nodePacket = new Packet(UUID.randomUUID(), MessageType.NODE_LIST, encodedNodeList.getBytes(StandardCharsets.UTF_8));
-                irohManager.send(encodeString(pub), nodePacket.toBytes());
+                irohManager.send(ticket, nodePacket.toBytes());
 
                 waitFor(pub, MessageType.NODE_LIST);
                 String recvNodeListStr = new String(recvNodeListBytes.getMessage(), StandardCharsets.UTF_8);
@@ -133,7 +139,7 @@ public class Sync implements MessageListener{
                 LinkedList<PublicKey[]> minPaths = graph.getMinPaths(decodeKeyDistList(recvNodeListStr), pub);
                 String encodedMinPaths = encodePaths(minPaths);
                 Packet minPathPacket = new Packet(UUID.randomUUID(), MessageType.MIN_PATH, encodedMinPaths.getBytes(StandardCharsets.UTF_8));
-                irohManager.send(encodeString(pub), minPathPacket.toBytes());
+                irohManager.send(ticket, minPathPacket.toBytes());
 
                 waitFor(pub, MessageType.MIN_PATH);
                 String encodedRecvMinPaths = new String(encodedRecvMinPathBytes.getMessage(), StandardCharsets.UTF_8);
@@ -169,6 +175,8 @@ public class Sync implements MessageListener{
         builder.append(pubkeyString);
         builder.append("||");
         builder.append(userNode.getName());
+        builder.append("||");
+        builder.append(irohManager.getEndpointId());
         builder.append("||");
         if(nfcManager.getFriendStatus()){
             builder.append("1");
@@ -350,7 +358,9 @@ public class Sync implements MessageListener{
         long timeout = System.currentTimeMillis() + 30000;
         while (tuple == null || !tuple.getSender().equals(sender)){
             if(System.currentTimeMillis() > timeout){
-                throw new TimeoutException("Node List not received in time");
+                TimeoutException e = new TimeoutException("Node List not received in time");
+                e.printStackTrace();
+                break;
             }
             Thread.sleep(50);
         }

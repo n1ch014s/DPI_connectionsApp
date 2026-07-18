@@ -45,6 +45,7 @@ public class AppHostApduService extends HostApduService {
 
             // Send response
             String response = sync.processOutgoing();
+
             return response.getBytes();
         }
         else {

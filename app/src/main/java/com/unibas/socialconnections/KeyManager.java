@@ -2,6 +2,8 @@ package com.unibas.socialconnections;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
+
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
 
@@ -12,6 +14,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Security;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
@@ -41,8 +44,12 @@ public class KeyManager {
     }
 
     public static KeyPair generateKeyPair(Context context) throws Exception {
+        Security.addProvider(new BouncyCastleProvider());
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("Ed25519", "BC");
         KeyPair keyPair = kpg.generateKeyPair();
+        Log.d("KEY", "Generated Keys");
+        Log.d("KEY", "Public: " + keyPair.getPublic());
+        Log.d("KEY", "Private: " + keyPair.getPrivate());
 
         SharedPreferences prefs = getEncryptedPrefs(context);
         prefs.edit()
@@ -58,8 +65,10 @@ public class KeyManager {
 
         String privB64 = prefs.getString(KEY_PRIVATE, null);
         String pubB64 = prefs.getString(KEY_PUBLIC, null);
+        Log.d("KEY", "retrieved: " + privB64 + " and " + pubB64);
 
         if (privB64 == null || pubB64 == null) {
+            Log.d("KEY", "NO KEYS FOUND");
             throw new IllegalStateException("No key pair found — call generateKeyPair first");
         }
 
@@ -72,5 +81,23 @@ public class KeyManager {
         PublicKey publicKey = keyFactory.generatePublic(pubSpec);
 
         return new KeyPair(publicKey, privateKey);
+    }
+
+    public static byte[] getIrohSecretKey(PrivateKey privateKey) {
+
+        byte[] encoded = privateKey.getEncoded();
+
+        // Ed25519 PKCS#8 stores the 32 byte seed at the end
+        byte[] seed = new byte[32];
+
+        System.arraycopy(
+                encoded,
+                encoded.length - 32,
+                seed,
+                0,
+                32
+        );
+
+        return seed;
     }
 }

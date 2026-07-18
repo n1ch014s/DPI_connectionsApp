@@ -1,5 +1,7 @@
 package com.unibas.socialconnections.transmission
 
+import android.text.style.TabStopSpan
+import android.util.Log
 import computer.iroh.Connection
 import computer.iroh.Endpoint
 import computer.iroh.EndpointAddr
@@ -11,7 +13,9 @@ import connections.Node
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.nio.charset.StandardCharsets
 import java.security.PublicKey
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.encoding.Base64
@@ -21,20 +25,30 @@ class IrohManager() {
 
     private var endpoint: Endpoint? = null
     private val connections = ConcurrentHashMap<EndpointId, Connection>()
+    private val pendingConnection = ConcurrentHashMap<EndpointId, ConnectionState>()
     private val alreadyReceiving = ConcurrentHashMap.newKeySet<EndpointId>() // to see if a coroutine has already been started for this connection
     private val alpn = "social-connections/1".toByteArray()
     private lateinit var graph: GraphUtil
+    private var endpointReady = false
+
+    private enum class ConnectionState{
+        DISCONNECTED,
+        CONNECTED,
+        PENDING
+    }
 
     /**
      * Creates and binds the local iroh endpoint.
      */
-    suspend fun startInternal() { //privKey : ByteArray
+    suspend fun startInternal(privKey : ByteArray) {
         endpoint = Endpoint.bind(
             EndpointOptions(
                 alpns = listOf(alpn)
-                //, secretKey = privKey
+                , secretKey = privKey
             )
         )
+        endpointReady = true
+        Log.d("Iroh", "Endpoint created: $EndpointId");
 
     }
 
@@ -48,6 +62,8 @@ class IrohManager() {
 
 
         val peerId = EndpointId.fromString(ticket)
+        pendingConnection[peerId] = ConnectionState.PENDING
+        Log.d("Iroh", "Connecting to Peer: $peerId")
 
 
         val addr = EndpointAddr(
@@ -56,29 +72,48 @@ class IrohManager() {
             emptyList()
         )
 
+
         val connection = ep.connect(
             addr,
             alpn
         )
 
         connections[peerId] = connection
+        pendingConnection[peerId] = ConnectionState.CONNECTED
+        Log.d("iroh", "Connection Established: $connection")
+
     }
 
     /**
      * Accept the next connection from the peer.
      */
-    private suspend fun acceptInternal(){
+    private suspend fun acceptInternal(ticket: String){
+        val expectedPeerId = EndpointId.fromString(ticket)
+
+        pendingConnection[expectedPeerId] = ConnectionState.PENDING
+
         val ep = endpoint
             ?: throw IllegalStateException("Endpoint not started")
 
+        Log.d("Iroh", "Endpoint available: ${ep.id()}")
+
         val incoming = ep.acceptNext()
             ?: throw IllegalStateException("No incoming connection")
+
+        Log.d("Iroh", "incoming: $incoming")
 
         val accepting = incoming.accept()
         val connection = accepting.connect()
         val peerId = connection.remoteId()
 
+        require(peerId == expectedPeerId) {
+            "Accepted connection from unexpected peer: expected $expectedPeerId, got $peerId"
+        }
+
+        Log.d("Iroh", "connected: $peerId, $connection")
+
         connections[peerId] = connection
+        pendingConnection[peerId] = ConnectionState.CONNECTED
     }
 
 
@@ -102,12 +137,17 @@ class IrohManager() {
     /**
      * Send variation with the peerId as a string instead of direct EndpointID because i could NOT be bothered to redo that
      */
-    fun send(ticket : String, message: ByteArray) {
+    private suspend fun sendInternal(ticket : String, message: ByteArray) {
         val peer = EndpointId.fromString(ticket)
+        Log.d("Iroh", "ConnectionState: "+ pendingConnection[peer])
+        while (pendingConnection[peer] == ConnectionState.PENDING || connections[peer] == null){
+            delay(10.milliseconds)
+        }
         val conn = connections[peer]
             ?: throw IllegalStateException("Not connected")
 
         conn.sendDatagram(message)
+        Log.d("Iroh", "Send Message: ${message.toString(StandardCharsets.UTF_8)}")
     }
 
     /**
@@ -131,6 +171,9 @@ class IrohManager() {
      */
     fun startReceiving(listener : MessageListener) {
         CoroutineScope(Dispatchers.IO).launch {
+            while (!endpointReady){
+                delay(10.milliseconds)
+            }
             while (true){
                 connections.forEach() { (peerId, connection) ->
                     if(alreadyReceiving.add(peerId)) {
@@ -171,8 +214,11 @@ class IrohManager() {
      * Closes the connection to a specific peer.
      */
     fun disconnect(peer: EndpointId) {
-        connections.remove(peer)?.close()
         alreadyReceiving.remove(peer)
+        pendingConnection[peer] = ConnectionState.DISCONNECTED
+        connections.remove(peer)?.close()
+
+
     }
 
 
@@ -183,10 +229,10 @@ class IrohManager() {
 
     /*----------------------- Java Friendly calls -----------------------*/
 
-    fun start(graphUtil : GraphUtil) { //privKey : ByteArray
+    fun start(graphUtil : GraphUtil, privKey : ByteArray) {
         graph = graphUtil
         CoroutineScope(Dispatchers.IO).launch {
-            startInternal() // pass privKey
+            startInternal(privKey)
         }
     }
 
@@ -196,9 +242,15 @@ class IrohManager() {
         }
     }
 
-    fun accept(){
+    fun accept(ticket : String){
         CoroutineScope(Dispatchers.IO).launch {
-            acceptInternal()
+            acceptInternal(ticket)
+        }
+    }
+
+    fun send(ticket : String, message: ByteArray){
+        CoroutineScope(Dispatchers.IO).launch {
+            sendInternal(ticket, message)
         }
     }
 
