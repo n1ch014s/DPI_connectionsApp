@@ -157,7 +157,7 @@ public class Sync implements MessageListener{
                  * build with min path
                  */
                 LinkedList<PublicKey[]> filledMinPaths = graph.fillMinPaths(decodePaths(encodedRecvMinPaths), pub);
-                PathGraphBuilder.GraphData graphData = PathGraphBuilder.build(filledMinPaths, graph, name);
+                PathGraphBuilder.GraphData graphData = PathGraphBuilder.build(filledMinPaths, graph, name, pub);
 
                 PathHolder.pendingData = graphData;
                 PathHolder.otherUsername = name;
