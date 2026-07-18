@@ -333,7 +333,7 @@ public class Sync implements MessageListener{
 
     }
 
-    private MessageTuple waitFor(PublicKey sender, MessageType type) throws TimeoutException, InterruptedException {
+    private void waitFor(PublicKey sender, MessageType type) throws TimeoutException, InterruptedException {
         MessageTuple tuple = null;
         if(type.equals(MessageType.NODE_LIST)){
            tuple = recvNodeListBytes;
@@ -348,8 +348,6 @@ public class Sync implements MessageListener{
             }
             Thread.sleep(50);
         }
-
-        return tuple;
     }
 
 
