@@ -18,7 +18,7 @@ import connections.Node;
 
 public class GraphStorage {
 
-    private static final String KEY_ALGORITHM = "EC";
+    private static final String KEY_ALGORITHM = "Ed25519";
     private final NodeDao nodeDao;
     private GraphUtil graphUtil;
 
@@ -38,10 +38,10 @@ public class GraphStorage {
         return Base64.getEncoder().encodeToString(pub.getEncoded());
     }
 
-    private static PublicKey decodeKey(String base64) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    private static PublicKey decodeKey(String base64) throws Exception {
         byte[] bytes = Base64.getDecoder().decode(base64);
         X509EncodedKeySpec spec = new X509EncodedKeySpec(bytes);
-        KeyFactory factory = KeyFactory.getInstance(KEY_ALGORITHM);
+        KeyFactory factory = KeyFactory.getInstance(KEY_ALGORITHM, "BC");
         return factory.generatePublic(spec);
     }
 

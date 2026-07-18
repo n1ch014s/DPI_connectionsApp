@@ -49,7 +49,7 @@ public class SetupActivity extends AppCompatActivity {
         // Start key generation right away, in the background
         executor.execute(() -> {
             try {
-                KeyPair keyPair = KeyManager.generateKeyPair();
+                KeyPair keyPair = KeyManager.generateKeyPair(getApplicationContext());
                 generatedKeyPair = keyPair;
                 mainHandler.post(() -> {
                     progressBar.setVisibility(View.GONE);

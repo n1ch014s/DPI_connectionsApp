@@ -13,6 +13,9 @@ dependencies {
     implementation("computer.iroh:iroh:1.0.0") {
         exclude group: "net.java.dev.jna", module: "jna"
     }
+    //ED25519 keys
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.78'
+    implementation 'androidx.security:security-crypto:1.1.0'
 
     //necessary for computer.iroh
     implementation("net.java.dev.jna:jna:5.15.0@aar")

@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         graphStorage.getStoredUsername(username -> {
             executor.execute(() -> {
                 try {
-                    KeyPair keyPair = KeyManager.getExistingKeyPair();
+                    KeyPair keyPair = KeyManager.getExistingKeyPair(getApplicationContext());
                     String finalUsername = (username != null) ? username : "Unknown";
 
                     GraphUtil graph = new GraphUtil(finalUsername, keyPair.getPublic(), (PrivateKey) keyPair.getPrivate());

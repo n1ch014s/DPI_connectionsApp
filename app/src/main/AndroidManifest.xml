@@ -17,6 +17,7 @@
 
 
     <application
+        android:name=".SocialConnectionsApp"
         android:allowBackup="true"
         android:label="SocialConnections"
         android:supportsRtl="true"

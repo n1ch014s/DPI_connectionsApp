@@ -7,6 +7,8 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PublicKey;
 import java.util.LinkedList;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import java.security.Security;
 
 import static org.junit.Assert.*;
 public class GraphUtilTest {
@@ -27,9 +29,14 @@ public class GraphUtilTest {
         graph2 = new GraphUtil("TestUser2", userKeys2.getPublic(), userKeys2.getPrivate());
     }
 
+    static {
+        if (Security.getProvider("BC") == null) {
+            Security.insertProviderAt(new BouncyCastleProvider(), 1);
+        }
+    }
+
     private static KeyPair generateTestKeyPair() throws Exception {
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("EC");
-        kpg.initialize(256);
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("Ed25519", "BC");
         return kpg.generateKeyPair();
     }
 
@@ -211,14 +218,14 @@ public class GraphUtilTest {
         /*System.out.println("Alice: " + friendKeys.getPublic());
         System.out.println("K2: " + friendKeys2.getPublic());
         System.out.println("Bob: " + friendKeys3.getPublic());
-        for(PublicKey[] p:graph.getMinPaths(list2)) {
+        for(PublicKey[] p:graph.getMinPaths(list2, userKeys2.getPublic())) {
             System.out.println("Graph 1 min: ");
             for(PublicKey pub:p) {
                 System.out.println(pub);
             }
             System.out.println(" ");
         }
-        for(PublicKey[] p:graph2.getMinPaths(list)) {
+        for(PublicKey[] p:graph2.getMinPaths(list, userKeys.getPublic())) {
             System.out.println("Graph 2 min: ");
             for(PublicKey pub:p) {
                 System.out.println(pub);

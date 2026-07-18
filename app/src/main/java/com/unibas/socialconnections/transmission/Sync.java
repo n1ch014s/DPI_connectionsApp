@@ -192,13 +192,10 @@ public class Sync implements MessageListener{
      * @return Public Key translated from the input
      * @throws Exception Thrown in case of an error
      */
-    public PublicKey decodeString(String pubString) throws Exception{
+    public PublicKey decodeString(String pubString) throws Exception {
         byte[] publicKeyBytes = Base64.getDecoder().decode(pubString.getBytes(StandardCharsets.UTF_8));
-
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKeyBytes);
-
-        KeyFactory keyFactory = KeyFactory.getInstance("EC");
-
+        KeyFactory keyFactory = KeyFactory.getInstance("Ed25519", "BC");
         return keyFactory.generatePublic(keySpec);
     }
 
@@ -226,7 +223,7 @@ public class Sync implements MessageListener{
         String[] keyStrings = data.split("\\|");
         PublicKey[] result = new PublicKey[keyStrings.length];
 
-        KeyFactory keyFactory = KeyFactory.getInstance("EC");
+        KeyFactory keyFactory = KeyFactory.getInstance("Ed25519", "BC");
 
         for (int i = 0; i < keyStrings.length; i++) {
             byte[] keyBytes = Base64.getDecoder().decode(keyStrings[i]);
@@ -252,7 +249,7 @@ public class Sync implements MessageListener{
         String[] entries = data.split(";");
         KeyDistTuple[] result = new KeyDistTuple[entries.length];
 
-        KeyFactory keyFactory = KeyFactory.getInstance("EC");
+        KeyFactory keyFactory = KeyFactory.getInstance("Ed25519", "BC");
 
         for (int i = 0; i < entries.length; i++) {
             String[] parts = entries[i].split(",");
@@ -284,7 +281,7 @@ public class Sync implements MessageListener{
         LinkedList<PublicKey[]> result = new LinkedList<>();
         if (data == null || data.isEmpty()) return result;
 
-        KeyFactory keyFactory = KeyFactory.getInstance("EC");
+        KeyFactory keyFactory = KeyFactory.getInstance("Ed25519", "BC");
         String[] pathStrings = data.split(";");
 
         for (String pathStr : pathStrings) {
