@@ -7,6 +7,7 @@ import computer.iroh.EndpointId
 import computer.iroh.EndpointOptions
 import computer.iroh.Incoming
 import connections.GraphUtil
+import connections.Node
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,14 +25,14 @@ class IrohManager() {
     private val alpn = "social-connections/1".toByteArray()
     private lateinit var graph: GraphUtil
 
-
     /**
      * Creates and binds the local iroh endpoint.
      */
-    suspend fun startInternal() {
+    suspend fun startInternal() { //privKey : ByteArray
         endpoint = Endpoint.bind(
             EndpointOptions(
                 alpns = listOf(alpn)
+                //, secretKey = privKey
             )
         )
 
@@ -182,10 +183,10 @@ class IrohManager() {
 
     /*----------------------- Java Friendly calls -----------------------*/
 
-    fun start(graphUtil : GraphUtil) {
+    fun start(graphUtil : GraphUtil) { //privKey : ByteArray
         graph = graphUtil
         CoroutineScope(Dispatchers.IO).launch {
-            startInternal()
+            startInternal() // pass privKey
         }
     }
 

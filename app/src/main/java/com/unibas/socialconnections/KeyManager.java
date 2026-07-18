@@ -2,6 +2,7 @@ package com.unibas.socialconnections;
 
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
+import android.util.Log;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -17,6 +18,31 @@ public class KeyManager {
         keyStore.load(null);
         return keyStore.containsAlias(ALIAS);
     }
+
+
+    /*
+    public static KeyPair generateKeyPair() throws Exception {
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("Ed25519");
+        return kpg.generateKeyPair();
+    }
+    */
+
+    public static byte[] getEd25519Seed(PrivateKey privateKey) {
+        byte[] encoded = privateKey.getEncoded();
+        Log.d("SEED", "Encoded key: " + encoded);
+
+        byte[] seed = new byte[32];
+        System.arraycopy(
+                encoded,
+                encoded.length - 32,
+                seed,
+                0,
+                32
+        );
+
+        return seed;
+    }
+
 
     public static KeyPair generateKeyPair() throws Exception {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance(

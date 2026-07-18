@@ -8,6 +8,7 @@ import android.content.Intent;
 
 import com.unibas.socialconnections.GUI.PathGraphBuilder;
 import com.unibas.socialconnections.GUI.PathHolder;
+import com.unibas.socialconnections.KeyManager;
 import com.unibas.socialconnections.activities.PathActivity;
 
 import java.nio.charset.StandardCharsets;
@@ -59,6 +60,7 @@ public class Sync implements MessageListener{
         irohManager.start(graph);
         irohManager.startReceiving(this);
         this.gossip = new Gossip(irohManager);
+        instance = this;
 
     }
 
@@ -72,13 +74,17 @@ public class Sync implements MessageListener{
         data = info.split("\\|\\|");
         PublicKey pub = null;
         try {
+            Log.d("NFC", "Data Received: " + info);
             pub = decodeString(data[0]);
         }catch (Exception e){
             e.printStackTrace();
         }
         String name = data[1];
         String friendMode = data[2];
-        String friendPubs = data[3];
+        String friendPubs = null;
+        if(data.length > 3 ){
+            friendPubs = data[3];
+        }
 
         if(getHostingStatus()){
             irohManager.connect(data[0]);
@@ -95,8 +101,10 @@ public class Sync implements MessageListener{
 
                 //String encodedRecvFriendsList = new String(gossip.receive(data[0]), StandardCharsets.UTF_8); This is unnecessary as weve already passed the friend list over nfc
 
-                PublicKey[] decodedRecvFriendsList = decodePublicKeyArray(friendPubs);
-                graph.addFriendToFriend(pub, decodedRecvFriendsList);
+                if(friendPubs != null) {
+                    PublicKey[] decodedRecvFriendsList = decodePublicKeyArray(friendPubs);
+                    graph.addFriendToFriend(pub, decodedRecvFriendsList);
+                }
 
             } catch (Exception e) {
                 throw new RuntimeException(e);

@@ -29,7 +29,8 @@ public class AppHostApduService extends HostApduService {
 
         Sync sync = Sync.getInstance();
 
-        Log.d("SYNC", "found instance");
+        Log.d("APDU", "found instance: " + sync);
+        Log.d("APDU", "Hosting Status: " + sync.getHostingStatus());
 
         if(sync != null && sync.getHostingStatus()) {
             Log.d("HCE", "processcommand was called APDU service");
@@ -37,8 +38,10 @@ public class AppHostApduService extends HostApduService {
             // Client sends data
 
             String data = new String(command);
-            sync.processIncoming(data);
-            sync.setHostingStatus(false);
+
+            new Thread(() -> {
+                sync.processIncoming(data);
+            }).start();
 
             // Send response
             String response = sync.processOutgoing();

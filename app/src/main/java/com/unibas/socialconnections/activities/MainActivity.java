@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
             nfcManager.setFriendMode(true);
             nfcManager.startClient();
 
-            Toast.makeText(this, "Adding Friend: Host", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Adding Friend: Client", Toast.LENGTH_SHORT).show();
         });
 
     }

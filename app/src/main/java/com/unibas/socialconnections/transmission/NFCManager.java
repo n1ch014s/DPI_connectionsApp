@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -110,9 +111,9 @@ public class NFCManager{
                             // "tranceive" both sends data and then waits for a response
                             // therefore response is automatically the bytes that are responded from the host
                             byte[] response = isoDep.transceive(message.getBytes());
+                            Log.d("NFC", "Repsonse Array:  " + Arrays.toString(response));
 
-
-                            String reply = new String(response);
+                            String reply = new String(response, StandardCharsets.UTF_8);
                             this.sync.processIncoming(reply);
                         }
 
@@ -120,7 +121,12 @@ public class NFCManager{
                         nfcAdapter.disableReaderMode(sync.getActivity());
 
                     } catch (IOException e) {
+                        sync.getActivity().runOnUiThread(() ->
+                                Toast.makeText(sync.getActivity(), "An Error Occurred, please try again", Toast.LENGTH_SHORT).show()
+                        );
+
                         throw new RuntimeException(e);
+
                     }
                 },
                 NfcAdapter.FLAG_READER_NFC_A |
