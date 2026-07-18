@@ -37,14 +37,14 @@ public class PathGraphBuilder {
         public final List<GraphEdge> edges = new ArrayList<>();
     }
 
-    public static GraphData build(LinkedList<PublicKey[]> paths, GraphUtil graph, String otherUserName, PublicKey pub) {
+    public static GraphData build(LinkedList<PublicKey[]> paths, GraphUtil graph, String otherUserName, PublicKey pk) {
         GraphData data = new GraphData();
         Map<String, GraphNode> nodeMap = new LinkedHashMap<>();
         String userName = graph.getUserNode().getName();
 
         nodeMap.put(userName, new GraphNode(graph.getUserNode().getPublicKey().toString(), userName, 0));
         if(paths.isEmpty()) {
-            nodeMap.put(otherUserName, new GraphNode(pub.toString(), otherUserName, 1));
+            nodeMap.put(otherUserName, new GraphNode(pk.toString(), otherUserName, 1));
             data.nodes.addAll(nodeMap.values());
             return data;
         }
