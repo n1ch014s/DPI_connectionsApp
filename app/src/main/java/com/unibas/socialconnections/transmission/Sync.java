@@ -18,6 +18,7 @@ import java.util.Base64;
 import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeoutException;
 
 import computer.iroh.EndpointId;
 import connections.GraphUtil;
@@ -114,10 +115,9 @@ public class Sync implements MessageListener{
                 Packet nodePacket = new Packet(UUID.randomUUID(), MessageType.NODE_LIST, encodedNodeList.getBytes(StandardCharsets.UTF_8));
                 irohManager.send(encodeString(pub), nodePacket.toBytes());
 
-                while (recvNodeListBytes.getSender() != pub){
-                    wait();
-                }
+                waitFor(pub, MessageType.NODE_LIST);
                 String recvNodeListStr = new String(recvNodeListBytes.getMessage(), StandardCharsets.UTF_8);
+                recvNodeListStr = null;
 
                 /**
                  * compare min paths
@@ -127,10 +127,9 @@ public class Sync implements MessageListener{
                 Packet minPathPacket = new Packet(UUID.randomUUID(), MessageType.MIN_PATH, encodedMinPaths.getBytes(StandardCharsets.UTF_8));
                 irohManager.send(encodeString(pub), minPathPacket.toBytes());
 
-                while (encodedRecvMinPathBytes.getSender() != pub){
-                    wait();
-                }
+                waitFor(pub, MessageType.MIN_PATH);
                 String encodedRecvMinPaths = new String(encodedRecvMinPathBytes.getMessage(), StandardCharsets.UTF_8);
+                encodedRecvMinPaths = null;
 
                 /**
                  * build with min path
@@ -322,16 +321,35 @@ public class Sync implements MessageListener{
         switch (messageType){
             case UPDATE:
                 //TODO what and how do we update?
-                recvNodeListBytes = new MessageTuple(senderPK, message);
+                updateBytes = new MessageTuple(senderPK, message);
                 break;
             case NODE_LIST:
                 recvNodeListBytes = new MessageTuple(senderPK, message);
                 break;
             case MIN_PATH:
-                recvNodeListBytes = new MessageTuple(senderPK, message);
+                encodedRecvMinPathBytes = new MessageTuple(senderPK, message);
                 break;
         }
 
+    }
+
+    private MessageTuple waitFor(PublicKey sender, MessageType type) throws TimeoutException, InterruptedException {
+        MessageTuple tuple = null;
+        if(type.equals(MessageType.NODE_LIST)){
+           tuple = recvNodeListBytes;
+        }else {
+            tuple = encodedRecvMinPathBytes;
+        }
+
+        long timeout = System.currentTimeMillis() + 30000;
+        while (tuple == null || !tuple.getSender().equals(sender)){
+            if(System.currentTimeMillis() > timeout){
+                throw new TimeoutException("Node List not received in time");
+            }
+            Thread.sleep(50);
+        }
+
+        return tuple;
     }
 
 
