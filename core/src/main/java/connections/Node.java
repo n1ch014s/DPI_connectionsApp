@@ -4,11 +4,14 @@ import java.security.PublicKey;
 import java.security.PrivateKey;
 import java.util.HashMap;
 
+import computer.iroh.EndpointId;
+
 
 public class Node {
     //User Node attributes
     public final boolean isUser;
     public final PrivateKey privateKey;
+    public String endpointId;
 
     //Friend Node attributes
     public boolean isFriend;
@@ -62,6 +65,17 @@ public class Node {
         friends = new HashMap<>();
     }
 
+
+    public Node(PublicKey pub, String n, String id) {
+        isUser = false;
+        isFriend = false;
+        publicKey = pub;
+        privateKey = null;
+        name = n;
+        endpointId = id;
+    }
+
+
     /**
      * Method for adding new Friend node to this node's friend map.
      * Also adds this node as new Friend to other node.
@@ -86,6 +100,14 @@ public class Node {
             friendNode.isFriend = false;
             friendNode.name = null;
         }
+    }
+
+    public void setEndpointId(String id){
+        this.endpointId = id;
+    }
+
+    public String getEndpointId(){
+        return this.endpointId;
     }
 
     public PublicKey getPublicKey(){
