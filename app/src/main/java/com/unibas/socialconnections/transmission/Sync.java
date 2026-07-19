@@ -80,7 +80,7 @@ public class Sync implements MessageListener{
         data = info.split("\\|\\|");
         PublicKey pub = null;
         try {
-            Log.d("NFC", "Data Received: " + info);
+            //Log.d("NFC", "Data Received: " + info);
             pub = decodeString(data[0]);
         }catch (Exception e){
             e.printStackTrace();
@@ -119,7 +119,7 @@ public class Sync implements MessageListener{
                 //String encodedRecvFriendsList = new String(gossip.receive(data[0]), StandardCharsets.UTF_8); This is unnecessary as weve already passed the friend list over nfc
 
                 if(friendPubs != null) {
-                    Log.d("Sync", "FriendsList: " + friendPubs);
+                    //Log.d("Sync", "FriendsList: " + friendPubs);
                     PublicKey[] decodedRecvFriendsList = decodePublicKeyArray(friendPubs);
                     graph.addFriendToFriend(pub, decodedRecvFriendsList);
                     for(PublicKey p:decodedRecvFriendsList) {
@@ -142,10 +142,10 @@ public class Sync implements MessageListener{
                  * compare node lists
                  */
                 KeyDistTuple[] nodeList = graph.getList();
-                Log.d("DEBUG SYNC", "User pub: " + graph.getUserNode().publicKey + ", Other pub: " + pub);
-                for(KeyDistTuple kdt:nodeList) {
+                /*Log.d("DEBUG SYNC", "User pub: " + graph.getUserNode().publicKey + ", Other pub: " + pub);
+                for(KeyDistTuple kdt : nodeList) {
                     Log.d("DEBUG SYNC", "Friend: " + kdt.key + ", Distance: " + kdt.distance);
-                }
+                }*/
                 String encodedNodeList = encodeKeyDistList(nodeList);
                 Packet nodePacket = new Packet(UUID.randomUUID(), MessageType.NODE_LIST, encodedNodeList.getBytes(StandardCharsets.UTF_8));
                 irohManager.send(ticket, nodePacket.toBytes());
@@ -159,6 +159,7 @@ public class Sync implements MessageListener{
                  * compare min paths
                  */
                 LinkedList<PublicKey[]> minPaths = graph.getMinPaths(decodeKeyDistList(recvNodeListStr), pub);
+                //Log.d("MINPATH", "Minpath: " + minPaths);
                 String encodedMinPaths = encodePaths(minPaths);
                 Packet minPathPacket = new Packet(UUID.randomUUID(), MessageType.MIN_PATH, encodedMinPaths.getBytes(StandardCharsets.UTF_8));
                 irohManager.send(ticket, minPathPacket.toBytes());
@@ -172,15 +173,15 @@ public class Sync implements MessageListener{
                  * build with min path
                  */
                 LinkedList<PublicKey[]> filledMinPaths = graph.fillMinPaths(decodePaths(encodedRecvMinPaths), pub);
-                Log.d("DEBUG SYNC", "filledMinPaths: ");
+                /*Log.d("DEBUG SYNC", "filledMinPaths: ");
                 int bibedibu = 0;
                 for(PublicKey[] pks: filledMinPaths) {
                     Log.d("DEBUG SYNC", "Path " + bibedibu++ + ":");
                     int babedibe = 0;
                     for(PublicKey publicoKeko:pks) {
-                        Log.d("DEBUG SYNC", "Friend: " + publicoKeko.toString() + ", Step: " + babedibe++);
+                        Log.d("DEBUG SYNC", "Friend: " + publicoKeko + ", Step: " + babedibe++);
                     }
-                }
+                }*/
                 PathGraphBuilder.GraphData graphData = PathGraphBuilder.build(filledMinPaths, graph, name, pub);
 
                 encodedRecvMinPathBytes = null;
@@ -344,6 +345,7 @@ public class Sync implements MessageListener{
             }
             result.add(path);
         }
+        //Log.d("DEBUG_MIN", "Debug decoded Min Path: " + result);
         return result;
     }
 
@@ -357,7 +359,7 @@ public class Sync implements MessageListener{
     @Override
     public void onMessage(EndpointId sender, byte[] payload) {
 
-        Log.d("MSG", "Message Received: " + sender + " | " + payload);
+        //Log.d("MSG", "Message Received: " + sender + " | " + payload);
 
         Packet packet = Packet.fromBytes(payload);
         UUID uuid = packet.getUUID();
