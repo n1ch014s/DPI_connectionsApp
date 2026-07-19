@@ -20,6 +20,7 @@ import java.util.concurrent.Executors;
 import connections.GraphUtil;
 import connections.Node;
 
+import com.unibas.socialconnections.DebugGraphSeeder;
 import com.unibas.socialconnections.KeyManager;
 import com.unibas.socialconnections.R;
 import com.unibas.socialconnections.SetupPrefs;
@@ -116,6 +117,25 @@ public class MainActivity extends AppCompatActivity {
         Button clientButton = findViewById(R.id.connectButton);
         Button clientFriend = findViewById(R.id.clientFriend);
         Button hostFriend = findViewById(R.id.hostFriend);
+
+        GraphStorage graphStorage = new GraphStorage(getApplicationContext());
+        Button seedButton = findViewById(R.id.seedDebugButton);
+        seedButton.setOnClickListener(v -> {
+            try {
+                DebugGraphSeeder.seedSharedMutualFriends(graph, graphStorage);
+
+                // optional: bulk out each phone's own friend-of-friend layer too
+                if (graph.getFriendsList().length > 0) {
+                    DebugGraphSeeder.seedRandomFriendsOfFriends(
+                            graph, graphStorage, graph.getFriendsList()[0], 5);
+                }
+
+                Toast.makeText(this, "Debug graph seeded", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Seeding failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
 
         hostButton.setOnClickListener(v -> {
             nfcManager.setFriendMode(false);
