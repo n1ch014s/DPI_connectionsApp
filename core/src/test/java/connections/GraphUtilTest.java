@@ -350,4 +350,44 @@ public class GraphUtilTest {
         assertTrue(nodeB.friends.containsKey(aKeys.getPublic()));
     }
 
+    @Test
+    public void fillMinPaths_findsCorrectDistanceAndPaths4() throws Exception {
+        KeyPair friendKeys = generateTestKeyPair();
+        KeyPair friendKeys2 = generateTestKeyPair();
+        KeyPair friendKeys3 = generateTestKeyPair();
+        KeyPair friendKeys4 = generateTestKeyPair();
+        KeyPair friendKeys5 = generateTestKeyPair();
+        KeyPair friendKeys6 = generateTestKeyPair();
+        graph.addFriendToUser(friendKeys.getPublic(), "Alice");
+        graph.addFriendToUser(friendKeys2.getPublic(), "Charlie");
+        graph.addFriendToFriend(friendKeys.getPublic(), friendKeys5.getPublic());
+        graph.addFriendToFriend(friendKeys2.getPublic(), friendKeys6.getPublic());
+        graph2.addFriendToUser(friendKeys3.getPublic(), "Bob");
+        graph2.addFriendToUser(friendKeys4.getPublic(), "Debbie");
+        graph2.addFriendToFriend(friendKeys3.getPublic(), friendKeys5.getPublic());
+        graph2.addFriendToFriend(friendKeys4.getPublic(), friendKeys6.getPublic());
+        KeyDistTuple[] list = graph.getList();
+        KeyDistTuple[] list2 = graph2.getList();
+        LinkedList<PublicKey[]> llist = graph.getMinPaths(list2, userKeys2.getPublic());
+        LinkedList<PublicKey[]> llist2 = graph2.getMinPaths(list, userKeys.getPublic());
+        System.out.println("User1: " + userKeys.getPublic());
+        System.out.println("User2: " + userKeys2.getPublic());
+        System.out.println("Alice: " + friendKeys.getPublic());
+        System.out.println("Charlie: " + friendKeys2.getPublic());
+        System.out.println("Bob: " + friendKeys3.getPublic());
+        System.out.println("Debbie: " + friendKeys4.getPublic());
+        System.out.println("Interface1: " + friendKeys5.getPublic());
+        System.out.println("Interface2: " + friendKeys6.getPublic());
+        for(PublicKey[] pks:llist) {
+            System.out.println("PATH");
+            for(PublicKey pubbo:pks) {
+                System.out.println("KEY: " + pubbo);
+            }
+        }
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).size(), graph2.fillMinPaths(llist, userKeys.getPublic()).size());
+        assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length, graph2.fillMinPaths(llist, userKeys.getPublic()).get(0).length);
+        assertEquals(4, graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length);
+        assertEquals(2, graph.fillMinPaths(llist2, userKeys2.getPublic()).size());
+    }
+
 }

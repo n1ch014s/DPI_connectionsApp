@@ -333,7 +333,7 @@ public class Sync implements MessageListener{
         String[] pathStrings = data.split(";");
 
         for (String pathStr : pathStrings) {
-            String[] keyStrings = pathStr.split("\\|");
+            String[] keyStrings = pathStr.split("\\|", -1);
             PublicKey[] path = new PublicKey[keyStrings.length];
             for (int i = 0; i < keyStrings.length; i++) {
                 if (!keyStrings[i].isEmpty()) {
