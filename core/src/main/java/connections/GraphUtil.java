@@ -246,6 +246,12 @@ public class GraphUtil {
         for(int i = 0; i < paths.size(); i++) {
             PublicKey[] curr = paths.get(i);
             Node interfaceNode = nodeList.get(curr[0]);
+            if(interfaceNode.getPublicKey() == otherUser) {
+                completedPaths = new LinkedList<>();
+                PublicKey[] p = {otherUser};
+                completedPaths.add(p);
+                return completedPaths;
+            }
             if(interfaceNode.isFriend) {
                 PublicKey[] path = new PublicKey[curr.length+1];
                 System.arraycopy(curr, 0, path, 0, curr.length);
