@@ -11,15 +11,15 @@ public class AppHostApduService extends HostApduService {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "HCE service created");
+        //Log.d(TAG, "HCE service created");
     }
 
     @Override
     public byte[] processCommandApdu(byte[] command, Bundle bundle) {
-        Log.d("APDU", "Service started");
+        //Log.d("APDU", "Service started");
 
         if(isSelectAid(command)) {
-            Log.d("HCE", "Client selected app");
+            //Log.d("HCE", "Client selected app");
 
             return new byte[]{
                     (byte) 0x90,
@@ -29,11 +29,11 @@ public class AppHostApduService extends HostApduService {
 
         Sync sync = Sync.getInstance();
 
-        Log.d("APDU", "found instance: " + sync);
-        Log.d("APDU", "Hosting Status: " + sync.getHostingStatus());
+        //Log.d("APDU", "found instance: " + sync);
+        //Log.d("APDU", "Hosting Status: " + sync.getHostingStatus());
 
         if(sync != null && sync.getHostingStatus()) {
-            Log.d("HCE", "processcommand was called APDU service");
+            //Log.d("HCE", "processcommand was called APDU service");
 
             // Client sends data
 

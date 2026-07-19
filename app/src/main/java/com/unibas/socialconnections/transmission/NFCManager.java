@@ -59,7 +59,6 @@ public class NFCManager{
     /**
      * Starts the Client and therefore the Reader Mode to detect any nearby NFC tags.
      * Upon finding one it runs the callback which sends first the AID message and then the data, i.e. its pubkey and friends list.
-     * TODO: should establish an iroh connection for MinDistance message and future updates
      */
     public void startClient(){
 
@@ -80,9 +79,9 @@ public class NFCManager{
                 (byte) 0x00
         };
 
-        Log.d("NFC", "starting reader mode!");
-        Log.d("NFC", "Adapter = " + nfcAdapter);
-        Log.d("NFC", "Enabled = " + nfcAdapter.isEnabled());
+        //Log.d("NFC", "starting reader mode!");
+        //Log.d("NFC", "Adapter = " + nfcAdapter);
+        //Log.d("NFC", "Enabled = " + nfcAdapter.isEnabled());
 
         nfcAdapter.enableReaderMode(
                     sync.getActivity(),
