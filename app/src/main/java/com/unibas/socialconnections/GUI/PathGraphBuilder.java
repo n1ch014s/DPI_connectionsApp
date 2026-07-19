@@ -42,27 +42,25 @@ public class PathGraphBuilder {
         Map<String, GraphNode> nodeMap = new LinkedHashMap<>();
         String userName = graph.getUserNode().getName();
 
-        nodeMap.put(userName, new GraphNode(graph.getUserNode().getPublicKey().toString(), userName, 0));
-        if(paths.isEmpty()) {
-            nodeMap.put(otherUserName, new GraphNode(pk.toString(), otherUserName, 1));
+        nodeMap.put(userName, new GraphNode(userName, userName, 0));
+        if (paths.isEmpty()) {
+            nodeMap.put(otherUserName, new GraphNode(otherUserName, otherUserName, 1));
             data.nodes.addAll(nodeMap.values());
             return data;
         }
         lastID = 0;
         idMap = new HashMap<>();
-        for(PublicKey[] path:paths) {
+        for (PublicKey[] path : paths) {
             String previous = userName;
-            for(int i = 0; i < path.length; i++) {
+            for (int i = 0; i < path.length; i++) {
                 PublicKey pub = path[i];
-                if(pub == null) {
-                    continue;
-                }
-                if(i == path.length -1) {
-                    nodeMap.putIfAbsent(otherUserName, new GraphNode(pub.toString(), otherUserName, path.length));
+                if (pub == null) continue;
+                if (i == path.length - 1) {
+                    nodeMap.putIfAbsent(otherUserName, new GraphNode(otherUserName, otherUserName, path.length));
                     idMap.putIfAbsent(pub, otherUserName);
                 }
                 String id = getID(pub, graph);
-                nodeMap.putIfAbsent(id, new GraphNode(pub.toString(), id, i+1));
+                nodeMap.putIfAbsent(id, new GraphNode(id, id, i + 1));
                 data.edges.add(new GraphEdge(previous, id));
                 previous = id;
             }

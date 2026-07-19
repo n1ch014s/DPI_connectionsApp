@@ -119,6 +119,7 @@ public class Sync implements MessageListener{
                     graph.addFriendToFriend(pub, decodedRecvFriendsList);
                     for(PublicKey p:decodedRecvFriendsList) {
                         graphStorage.saveNode(graph.nodeList.get(p));
+                        graphStorage.saveFriendship(graph.nodeList.get(pub), graph.nodeList.get(p));
                     }
                 }
 
