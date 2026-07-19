@@ -122,13 +122,7 @@ public class MainActivity extends AppCompatActivity {
         Button seedButton = findViewById(R.id.seedDebugButton);
         seedButton.setOnClickListener(v -> {
             try {
-                DebugGraphSeeder.seedSharedMutualFriends(graph, graphStorage);
-
-                // optional: bulk out each phone's own friend-of-friend layer too
-                if (graph.getFriendsList().length > 0) {
-                    DebugGraphSeeder.seedRandomFriendsOfFriends(
-                            graph, graphStorage, graph.getFriendsList()[0], 5);
-                }
+                DebugGraphSeeder.seedMutualFriendsAtDistanceTwo(graph, graphStorage);
 
                 Toast.makeText(this, "Debug graph seeded", Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
