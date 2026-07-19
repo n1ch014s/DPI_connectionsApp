@@ -55,12 +55,16 @@ public class PathGraphBuilder {
             for (int i = 0; i < path.length; i++) {
                 PublicKey pub = path[i];
                 if (pub == null) continue;
+                String id;
                 if (i == path.length - 1) {
                     nodeMap.putIfAbsent(otherUserName, new GraphNode(otherUserName, otherUserName, path.length));
                     idMap.putIfAbsent(pub, otherUserName);
+                    id = otherUserName;
                 }
-                String id = getID(pub, graph);
-                nodeMap.putIfAbsent(id, new GraphNode(id, id, i + 1));
+                else {
+                    id = getID(pub, graph);
+                    nodeMap.putIfAbsent(id, new GraphNode(id, id, i + 1));
+                }
                 data.edges.add(new GraphEdge(previous, id));
                 previous = id;
             }
