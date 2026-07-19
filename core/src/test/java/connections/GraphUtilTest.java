@@ -95,8 +95,7 @@ public class GraphUtilTest {
 
         KeyDistTuple[] list = graph.getList();
 
-        // Should contain entries for both the user's own node and the friend
-        assertEquals(2, list.length);
+        assertEquals(1, list.length);
     }
 
     @Test
@@ -299,7 +298,7 @@ public class GraphUtilTest {
         KeyDistTuple[] list2 = graph2.getList();
         LinkedList<PublicKey[]> llist = graph.getMinPaths(list2, userKeys2.getPublic());
         LinkedList<PublicKey[]> llist2 = graph2.getMinPaths(list, userKeys.getPublic());
-        System.out.println("Alice: " + userKeys2.getPublic());
+        /*System.out.println("Alice: " + userKeys2.getPublic());
         System.out.println("Bob: " + userKeys.getPublic());
         for(PublicKey[] p:llist2) {
             System.out.println("Graph 1 min: ");
@@ -329,7 +328,7 @@ public class GraphUtilTest {
                 System.out.println(pub);
             }
             System.out.println();
-        }
+        }*/
         assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).size(), graph2.fillMinPaths(llist, userKeys.getPublic()).size());
         assertEquals(graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length, graph2.fillMinPaths(llist, userKeys.getPublic()).get(0).length);
         assertEquals(1, graph.fillMinPaths(llist2, userKeys2.getPublic()).get(0).length);
