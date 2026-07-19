@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         if (nfcAdapter == null) {
             Toast.makeText(this, "NFC not supported on this device", Toast.LENGTH_SHORT).show();
             finish();
-            Log.d("HCEfromMain", "HCE enabled");
+            //Log.d("HCEfromMain", "HCE enabled");
             return;
         }
 

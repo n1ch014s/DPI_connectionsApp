@@ -96,18 +96,21 @@ public class Sync implements MessageListener{
         if(getHostingStatus()){
             irohManager.connect(ticket);
             setHostingStatus(false);
-            Log.d("HOST", "Host closed");
+            //Log.d("HOST", "Host closed");
         }else {
-            Log.d("Iroh", "Accepting next connection...");
+            //Log.d("Iroh", "Accepting next connection...");
             irohManager.accept(ticket);
 
         }
 
         if(friendMode.equals("1")) {
             try {
-                Log.d("Iroh", "Gossip Established!");
+                //Log.d("Iroh", "Gossip Established!");
                 graph.addFriendToUser(pub, name);
                 graph.nodeList.get(pub).setEndpointId(ticket);
+                if(!graph.getKeyList().containsKey(ticket)){
+                    graph.addToKeyList(ticket, pub);
+                }
                 graphStorage.saveNode(graph.nodeList.get(pub));
                 graphStorage.saveFriendship(graph.getUserNode(), graph.nodeList.get(pub));
                 PublicKey[] friendsList = graph.getFriendsList();
@@ -130,10 +133,10 @@ public class Sync implements MessageListener{
             }
         }else{
             try {
-                Log.d("Iroh", "Connection Established!");
+                //Log.d("Iroh", "Connection Established!");
 
                 Node contact = new Node(pub, name, ticket);
-                Log.d("SYNC", "New Node with ticket: " + ticket);
+                //Log.d("SYNC", "New Node with ticket: " + ticket);
 
                 /**
                  * compare node lists
@@ -147,7 +150,7 @@ public class Sync implements MessageListener{
                 Packet nodePacket = new Packet(UUID.randomUUID(), MessageType.NODE_LIST, encodedNodeList.getBytes(StandardCharsets.UTF_8));
                 irohManager.send(ticket, nodePacket.toBytes());
 
-                Log.d("SYNC", "Waiting for Node List from: " + contact);
+                //Log.d("SYNC", "Waiting for Node List from: " + contact);
                 waitFor(contact, MessageType.NODE_LIST);
                 String recvNodeListStr = new String(recvNodeListBytes.getMessage(), StandardCharsets.UTF_8);
 
@@ -159,7 +162,7 @@ public class Sync implements MessageListener{
                 String encodedMinPaths = encodePaths(minPaths);
                 Packet minPathPacket = new Packet(UUID.randomUUID(), MessageType.MIN_PATH, encodedMinPaths.getBytes(StandardCharsets.UTF_8));
                 irohManager.send(ticket, minPathPacket.toBytes());
-                Log.d("SYNC", "sent min paths");
+                //Log.d("SYNC", "sent min paths");
 
                 waitFor(contact, MessageType.MIN_PATH);
                 String encodedRecvMinPaths = new String(encodedRecvMinPathBytes.getMessage(), StandardCharsets.UTF_8);
@@ -261,13 +264,13 @@ public class Sync implements MessageListener{
     public static PublicKey[] decodePublicKeyArray(String data) throws Exception {
         if (data == null || data.isEmpty()) return new PublicKey[0];
 
-        Log.d("Sync", "Key Data: " + data);
+        //Log.d("Sync", "Key Data: " + data);
         String[] keyStrings = data.split("\\|");
         PublicKey[] result = new PublicKey[keyStrings.length];
 
         KeyFactory keyFactory = KeyFactory.getInstance("Ed25519", "BC");
 
-        Log.d("Sync", "KeyBytes: " + Arrays.toString(keyStrings));
+        //Log.d("Sync", "KeyBytes: " + Arrays.toString(keyStrings));
 
         for (int i = 0; i < keyStrings.length; i++) {
 
@@ -400,7 +403,19 @@ public class Sync implements MessageListener{
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        graph.addFriendToFriend(pub, decodedRecvFriendsList);
+
+        // Only add those that are not already in the list!
+
+        if(decodedRecvFriendsList.length > graph.getFriendsList(pub).length){
+            int over = decodedRecvFriendsList.length - graph.getFriendsList(pub).length;
+            PublicKey[] toBeAdded = new PublicKey[over];
+            for(int i = 0 ; i < over ; i++){
+                //Log.d("UPDATE", "Added Friend: " + decodedRecvFriendsList[graph.getFriendsList(pub).length + i]);
+                toBeAdded[i] = decodedRecvFriendsList[graph.getFriendsList(pub).length + i];
+            }
+            graph.addFriendToFriend(pub, decodedRecvFriendsList);
+        }//else {Log.d("UPDATE", "all friends already added");}
+
         for(PublicKey p:decodedRecvFriendsList) {
             graphStorage.saveNode(graph.nodeList.get(p));
         }
