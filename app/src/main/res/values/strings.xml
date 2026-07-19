@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="host_connection">Host Connection</string>
-    <string name="connect_to_host">Connect to Host</string>
+    <string name="host_connection">Host: Connect</string>
+    <string name="connect_to_host">Client: Connect</string>
     <string name="Social_Connections">Social Connections</string>
     <string name="client_friend">Client: Add Friend</string>
     <string name="host_friend">Host: Add Friend</string>
+    <string name="add_friend">Add Friends</string>
 </resources>

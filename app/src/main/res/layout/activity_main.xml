@@ -7,6 +7,13 @@
     android:gravity="center"
     android:padding="24dp">
 
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="197dp"
+        android:layout_height="wrap_content"
+        android:text="@string/Social_Connections"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
     <Button
         android:id="@+id/hostButton"
         android:layout_width="280dp"
@@ -17,8 +24,15 @@
         android:id="@+id/connectButton"
         android:layout_width="280dp"
         android:layout_height="64dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginBottom="50dp"
         android:text="@string/connect_to_host" />
+
+    <TextView
+        android:id="@+id/friendTextView"
+        android:layout_width="118dp"
+        android:layout_height="wrap_content"
+        android:text="@string/add_friend"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
     <Button
         android:id="@+id/hostFriend"
@@ -36,6 +50,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Seed Debug Graph"
-        android:visibility="gone" />
+        android:visibility="visible" />
 
 </LinearLayout>

@@ -50,7 +50,7 @@ public class DebugGraphSeeder {
      */
     public static void seedMutualFriendsAtDistanceTwo(GraphUtil graph, GraphStorage storage) throws Exception {
         // --- Group 1: mutual friends reached via a bridge SHARED with the other phone ---
-        for (int i = 0; i < SHARED_BRIDGE_FRIENDS.length; i++) {
+        /*for (int i = 0; i < SHARED_BRIDGE_FRIENDS.length; i++) {
             PublicKey bridgeKey = decodeFixedKey(SHARED_BRIDGE_FRIENDS[i]);
             PublicKey mutualKey = decodeFixedKey(MUTUAL_VIA_SHARED_BRIDGE[i]);
 
@@ -66,7 +66,7 @@ public class DebugGraphSeeder {
             mutualNode.name = "Mutual-SharedBridge-" + i;
             storage.saveNode(mutualNode);
             storage.saveFriendship(bridgeNode, mutualNode);
-        }
+        }*/
 
         // --- Group 2: mutual friends reached via a bridge that's DIFFERENT per phone ---
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("Ed25519", "BC");

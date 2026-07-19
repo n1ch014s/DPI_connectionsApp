@@ -120,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
 
         GraphStorage graphStorage = new GraphStorage(getApplicationContext());
         Button seedButton = findViewById(R.id.seedDebugButton);
+
         seedButton.setOnClickListener(v -> {
             try {
                 DebugGraphSeeder.seedMutualFriendsAtDistanceTwo(graph, graphStorage);

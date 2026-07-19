@@ -243,14 +243,11 @@ public class GraphUtil {
         if(paths.isEmpty()) {
             return paths;
         }
-        if(paths.get(0).length == 1) {
-            return paths;
-        }
         for(int i = 0; i < paths.size(); i++) {
             PublicKey[] curr = paths.get(i);
             Node interfaceNode = nodeList.get(curr[0]);
             if(interfaceNode.isFriend) {
-                PublicKey[] path = new PublicKey[curr.length];
+                PublicKey[] path = new PublicKey[curr.length+1];
                 System.arraycopy(curr, 0, path, 0, curr.length);
                 path[path.length-1] = otherUser;
                 completedPaths.add(path);
@@ -258,10 +255,10 @@ public class GraphUtil {
             else {
                 for(PublicKey p : interfaceNode.friends.keySet()) {
                     if(nodeList.get(p).isFriend) {
-                        PublicKey[] path = new PublicKey[curr.length];
+                        PublicKey[] path = new PublicKey[curr.length+1];
                         path[0] = p;
                         int j = 0;
-                        while(curr[j] != null) {
+                        while(j< curr.length && curr[j] != null) {
                             path[j+1] = curr[j];
                             j++;
                         }

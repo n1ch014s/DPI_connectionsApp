@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.LinkedList;
 import java.util.UUID;
@@ -89,7 +90,7 @@ public class Sync implements MessageListener{
         String friendMode = data[3];
         String friendPubs = null;
         if(data.length > 4 ){
-            friendPubs = data[3];
+            friendPubs = data[4];
         }
 
         if(getHostingStatus()){
@@ -115,6 +116,7 @@ public class Sync implements MessageListener{
                 //String encodedRecvFriendsList = new String(gossip.receive(data[0]), StandardCharsets.UTF_8); This is unnecessary as weve already passed the friend list over nfc
 
                 if(friendPubs != null) {
+                    Log.d("Sync", "FriendsList: " + friendPubs);
                     PublicKey[] decodedRecvFriendsList = decodePublicKeyArray(friendPubs);
                     graph.addFriendToFriend(pub, decodedRecvFriendsList);
                     for(PublicKey p:decodedRecvFriendsList) {
@@ -137,6 +139,10 @@ public class Sync implements MessageListener{
                  * compare node lists
                  */
                 KeyDistTuple[] nodeList = graph.getList();
+                Log.d("DEBUG SYNC", "User pub: " + graph.getUserNode().publicKey + ", Other pub: " + pub);
+                for(KeyDistTuple kdt:nodeList) {
+                    Log.d("DEBUG SYNC", "Friend: " + kdt.key + ", Distance: " + kdt.distance);
+                }
                 String encodedNodeList = encodeKeyDistList(nodeList);
                 Packet nodePacket = new Packet(UUID.randomUUID(), MessageType.NODE_LIST, encodedNodeList.getBytes(StandardCharsets.UTF_8));
                 irohManager.send(ticket, nodePacket.toBytes());
@@ -163,6 +169,15 @@ public class Sync implements MessageListener{
                  * build with min path
                  */
                 LinkedList<PublicKey[]> filledMinPaths = graph.fillMinPaths(decodePaths(encodedRecvMinPaths), pub);
+                Log.d("DEBUG SYNC", "filledMinPaths: ");
+                int bibedibu = 0;
+                for(PublicKey[] pks: filledMinPaths) {
+                    Log.d("DEBUG SYNC", "Path " + bibedibu++ + ":");
+                    int babedibe = 0;
+                    for(PublicKey publicoKeko:pks) {
+                        Log.d("DEBUG SYNC", "Friend: " + publicoKeko.toString() + ", Step: " + babedibe++);
+                    }
+                }
                 PathGraphBuilder.GraphData graphData = PathGraphBuilder.build(filledMinPaths, graph, name, pub);
 
                 encodedRecvMinPathBytes = null;
@@ -246,12 +261,16 @@ public class Sync implements MessageListener{
     public static PublicKey[] decodePublicKeyArray(String data) throws Exception {
         if (data == null || data.isEmpty()) return new PublicKey[0];
 
+        Log.d("Sync", "Key Data: " + data);
         String[] keyStrings = data.split("\\|");
         PublicKey[] result = new PublicKey[keyStrings.length];
 
         KeyFactory keyFactory = KeyFactory.getInstance("Ed25519", "BC");
 
+        Log.d("Sync", "KeyBytes: " + Arrays.toString(keyStrings));
+
         for (int i = 0; i < keyStrings.length; i++) {
+
             byte[] keyBytes = Base64.getDecoder().decode(keyStrings[i]);
             X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
             result[i] = keyFactory.generatePublic(spec);
@@ -354,19 +373,18 @@ public class Sync implements MessageListener{
 
         switch (messageType){
             case UPDATE:
-                //TODO what and how do we update?
                 updateBytes = new MessageTuple(senderTicket, message);
                 handleUpdate(senderTicket, message);
                 break;
             case NODE_LIST:
                 recvNodeListBytes = new MessageTuple(senderTicket, message);
-                Log.d("MSG", "Node List received: " + senderTicket);
-                Log.d("MSG", "NODE LIST SET: " + recvNodeListBytes);
+                //Log.d("MSG", "Node List received: " + senderTicket);
+                //Log.d("MSG", "NODE LIST SET: " + recvNodeListBytes);
                 break;
             case MIN_PATH:
                 encodedRecvMinPathBytes = new MessageTuple(senderTicket, message);
-                Log.d("MSG", "Min List received: " + senderTicket);
-                Log.d("MSG", "MIN LIST SET: " + encodedRecvMinPathBytes);
+                //Log.d("MSG", "Min List received: " + senderTicket);
+                //Log.d("MSG", "MIN LIST SET: " + encodedRecvMinPathBytes);
                 break;
         }
 
