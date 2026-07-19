@@ -130,6 +130,7 @@ public class Sync implements MessageListener{
                 Log.d("Iroh", "Connection Established!");
 
                 Node contact = new Node(pub, name, ticket);
+                Log.d("SYNC", "New Node with ticket: " + ticket);
 
                 /**
                  * compare node lists
@@ -139,6 +140,7 @@ public class Sync implements MessageListener{
                 Packet nodePacket = new Packet(UUID.randomUUID(), MessageType.NODE_LIST, encodedNodeList.getBytes(StandardCharsets.UTF_8));
                 irohManager.send(ticket, nodePacket.toBytes());
 
+                Log.d("SYNC", "Waiting for Node List from: " + contact);
                 waitFor(contact, MessageType.NODE_LIST);
                 String recvNodeListStr = new String(recvNodeListBytes.getMessage(), StandardCharsets.UTF_8);
 
@@ -150,6 +152,7 @@ public class Sync implements MessageListener{
                 String encodedMinPaths = encodePaths(minPaths);
                 Packet minPathPacket = new Packet(UUID.randomUUID(), MessageType.MIN_PATH, encodedMinPaths.getBytes(StandardCharsets.UTF_8));
                 irohManager.send(ticket, minPathPacket.toBytes());
+                Log.d("SYNC", "sent min paths");
 
                 waitFor(contact, MessageType.MIN_PATH);
                 String encodedRecvMinPaths = new String(encodedRecvMinPathBytes.getMessage(), StandardCharsets.UTF_8);
@@ -161,6 +164,9 @@ public class Sync implements MessageListener{
                 LinkedList<PublicKey[]> filledMinPaths = graph.fillMinPaths(decodePaths(encodedRecvMinPaths), pub);
                 PathGraphBuilder.GraphData graphData = PathGraphBuilder.build(filledMinPaths, graph, name, pub);
 
+                encodedRecvMinPathBytes = null;
+                recvNodeListBytes = null;
+
                 PathHolder.pendingData = graphData;
                 PathHolder.otherUsername = name;
                 activity.runOnUiThread(() -> {
@@ -168,7 +174,7 @@ public class Sync implements MessageListener{
                     activity.startActivity(intent);
                 });
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         }
 
@@ -353,9 +359,13 @@ public class Sync implements MessageListener{
                 break;
             case NODE_LIST:
                 recvNodeListBytes = new MessageTuple(senderTicket, message);
+                Log.d("MSG", "Node List received: " + senderTicket);
+                Log.d("MSG", "NODE LIST SET: " + recvNodeListBytes);
                 break;
             case MIN_PATH:
                 encodedRecvMinPathBytes = new MessageTuple(senderTicket, message);
+                Log.d("MSG", "Min List received: " + senderTicket);
+                Log.d("MSG", "MIN LIST SET: " + encodedRecvMinPathBytes);
                 break;
         }
 
@@ -386,9 +396,14 @@ public class Sync implements MessageListener{
         }
 
         long timeout = System.currentTimeMillis() + 30000;
-        while (tuple == null || !tuple.getSender().equals(sender.endpointId)){
+        while (tuple == null || !tuple.getSender().equals(sender.getEndpointId())){
+            if(type.equals(MessageType.NODE_LIST)){
+                tuple = recvNodeListBytes;
+            }else {
+                tuple = encodedRecvMinPathBytes;
+            }
             if(System.currentTimeMillis() > timeout){
-                TimeoutException e = new TimeoutException("Node List not received in time");
+                TimeoutException e = new TimeoutException("" + type + " not received in time");
                 e.printStackTrace();
                 break;
             }

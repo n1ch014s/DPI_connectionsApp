@@ -154,12 +154,14 @@ class IrohManager() {
      * Sends application data to ALL peers in friends list
      */
     fun broadcast(message : ByteArray) {
-        connections.forEach { (peerId, connection) ->
-            if(peerId in getFriendIds()) {
-                try {
-                    connection.sendDatagram(message)
-                } catch (e: Exception) {
-                    e.printStackTrace()
+        if(connections.isNotEmpty()) {
+            connections.forEach { (peerId, connection) ->
+                if (peerId in getFriendIds()) {
+                    try {
+                        connection.sendDatagram(message)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
         }
@@ -223,8 +225,12 @@ class IrohManager() {
 
 
     fun getFriendIds() : List<EndpointId>{
-        return graph.getFriendsListString()
-            .map { publicKey -> EndpointId.fromString(publicKey) }
+        if (graph.getFriendsListString().isNotEmpty()) {
+            val friendStrings = graph.getFriendsList()
+            val friendpointIds = friendStrings.map { endpoint -> graph.nodeList[endpoint]?.getEndpointId()?.let { EndpointId.fromString(it) } }
+            return friendpointIds as List<EndpointId>
+
+        } else return emptyList();
     }
 
     /*----------------------- Java Friendly calls -----------------------*/
@@ -237,14 +243,22 @@ class IrohManager() {
     }
 
     fun connect(ticket:String){
-        CoroutineScope(Dispatchers.IO).launch {
-            connectInternal(ticket)
+        if (connections[EndpointId.fromString(ticket)] == null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                connectInternal(ticket)
+            }
+        }else{
+            Log.d("IROH", "Connection already established!")
         }
     }
 
     fun accept(ticket : String){
-        CoroutineScope(Dispatchers.IO).launch {
-            acceptInternal(ticket)
+        if (connections[EndpointId.fromString(ticket)] == null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                acceptInternal(ticket)
+            }
+        }else{
+            Log.d("IROH", "Connection already established!")
         }
     }
 
